@@ -81,6 +81,15 @@
             display: flex;
             align-items: center;
             gap: 6px;
+
+        }
+        
+        .input-field {
+            background: transparent;
+            border: none;
+            color: #0f0;
+            outline: none;
+            font-family: monospace;
         }
         
         .prompt {
@@ -252,7 +261,6 @@
         <div class="terminal-input">
             <span class="prompt">nodeprompt@terminal:~$</span>
             <input type="text" class="input-field" id="commandInput" autofocus onkeypress="handleKeyPress(event)">
-            <span class="cursor" id="cursor"></span>
         </div>
     </div>
 
