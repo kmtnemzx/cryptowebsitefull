@@ -330,31 +330,55 @@
                 }
             }
         });
-        document.addEventListener("DOMContentLoaded", () => {
-          const bootLines = [
-            "Initializing NodePrompt OS...",
-            "Loading modules...",
-            "Checking system integrity...",
-            "Starting AI subsystems...",
-            "Connecting to neural network...",
-            "Loading user preferences...",
-            "Boot sequence complete.",
-            "",
-            "[████████████████████████████████████████] 100%"
-          ];
+        ddocument.addEventListener("DOMContentLoaded", () => {
+  const bootLines = [
+    "Initializing NodePrompt OS...",
+    "Loading modules...",
+    "Checking system integrity...",
+    "Starting AI subsystems...",
+    "Connecting to neural network...",
+    "Loading user preferences...",
+    "Boot sequence complete.",
+    "",
+    // We'll animate the bar instead of showing it immediately
+    "LOADING BAR"
+  ];
 
   const bootText = document.getElementById("boot-text");
   let i = 0;
 
   function showNextLine() {
     if (i < bootLines.length) {
-      bootText.textContent += bootLines[i] + "\n";
-      i++;
-      setTimeout(showNextLine, 500); // adjust speed here
+      if (bootLines[i] === "LOADING BAR") {
+        animateLoadingBar();
+      } else {
+        bootText.textContent += bootLines[i] + "\n";
+        i++;
+        setTimeout(showNextLine, 1500);
+      }
     } else {
-      // hide boot screen and show main terminal
       document.getElementById("boot-screen").style.display = "none";
     }
+  }
+
+  function animateLoadingBar() {
+    let percent = 0;
+    const interval = setInterval(() => {
+      percent++;
+      const filledBlocks = Math.floor(percent / 2.5); // 40 blocks max
+      const totalBlocks = 40;
+      const bar = "[" + "█".repeat(filledBlocks) + " ".repeat(totalBlocks - filledBlocks) + "] " + percent + "%";
+      bootText.textContent = bootText.textContent.replace(/(\[.*\]\s*\d+%)/, bar);
+      if (percent === 1) {
+        // if first frame, just add bar at the end
+        bootText.textContent += bar + "\n";
+      }
+      if (percent >= 100) {
+        clearInterval(interval);
+        i++; // move to next line after bar
+        setTimeout(showNextLine, 500);
+      }
+    }, 30); // speed: smaller = faster
   }
 
   showNextLine();
