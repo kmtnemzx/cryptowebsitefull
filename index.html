@@ -289,7 +289,7 @@
         function printUserCommand(command) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message user-message';
-            messageDiv.textContent = `cryptobot@terminal:~$ ${command}`;
+            messageDiv.textContent = `nodeprompt@terminal:~$ ${command}`;
             output.appendChild(messageDiv);
             scrollToBottom();
         }
@@ -377,11 +377,11 @@
                 <div class="crypto-header">${data.name.toUpperCase()} (${data.symbol.toUpperCase()})</div>
                 <div class="crypto-body">
                     <div class="ascii-art">${art}</div>
-                    <div class="crypto-row"><span>Price:</span><span>$${data.current_price.toLocaleString()}</span></div>
-                    <div class="crypto-row"><span>24h:</span><span class="${changeClass}">${changeSymbol}${data.price_change_percentage_24h.toFixed(2)}%</span></div>
+                    <div class="crypto-row"><span>Price:<span>$${data.current_price.toLocaleString()}</span></div>
+                    <div class="crypto-row"><span>24h:<span class="${changeClass}">${changeSymbol}${data.price_change_percentage_24h.toFixed(2)}%</span></div>
                     ${chart}
-                    <div class="crypto-row"><span>MCap:</span><span>$${(data.market_cap / 1e9).toFixed(2)}B</span></div>
-                    <div class="crypto-row"><span>Vol:</span><span>$${(data.total_volume / 1e6).toFixed(2)}M</span></div>
+                    <div class="crypto-row"><span>MCap:<span>$${(data.market_cap / 1e9).toFixed(2)}B</span></div>
+                    <div class="crypto-row"><span>Vol:<span>$${(data.total_volume / 1e6).toFixed(2)}M</span></div>
                 </div>
             `;
             
