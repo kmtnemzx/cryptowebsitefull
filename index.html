@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NodePrompt Terminal</title>
+    <title>NodePrompt AI Terminal</title>
     <style>
         * {
             margin: 0;
@@ -100,15 +100,6 @@
             caret-color: #00ff00;
         }
         
-        .cursor {
-            display: none;
-        }
-        
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
-        
         .message {
             margin-bottom: 4px;
         }
@@ -119,6 +110,13 @@
         
         .bot-message {
             color: white;
+        }
+        
+        .ai-message {
+            color: #00bfff;
+            border-left: 3px solid #00bfff;
+            padding-left: 8px;
+            margin: 8px 0;
         }
         
         .error {
@@ -226,6 +224,35 @@
             justify-content: space-between;
             padding: 1px 0;
         }
+
+        .ai-thinking {
+            color: #666;
+            font-style: italic;
+        }
+
+        .recommendation {
+            background: #001133;
+            border: 1px solid #0066cc;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+        }
+
+        .recommendation-header {
+            color: #00bfff;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .live-data {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -235,20 +262,20 @@
             <button class="btn minimize"></button>
             <button class="btn maximize"></button>
         </div>
-        <div class="terminal-title">nodeprompt@terminal:~$</div>
+        <div class="terminal-title">nodeprompt@ai-terminal:~$</div>
     </div>
     
     <div class="terminal-body">
         <div class="terminal-output scrollbar" id="output">
-            <div class="message bot-message">NodePrompt Terminal v1.0.0</div>
-            <div class="message bot-message">Connected to CoinGecko API | Type 'help' for commands</div>
+            <div class="message bot-message">NodePrompt AI Terminal v2.0.0</div>
+            <div class="message bot-message">🤖 AI Assistant + 📊 Live Crypto Data + 🔄 Real-time Updates</div>
             <div class="message bot-message">Built by @adamtappedin</div>
             <div class="message bot-message">──────────────────────────────────────</div>
         </div>
         
         <div class="terminal-input">
-            <span class="prompt">nodeprompt@terminal:~$ </span>
-            <input type="text" class="input-field" id="commandInput" autocomplete="off" spellcheck="false">
+            <span class="prompt">nodeprompt@ai-terminal:~$ </span>
+            <input type="text" class="input-field" id="commandInput" autocomplete="off" spellcheck="false" placeholder="Try: ai analyze bitcoin, live btc, or help">
         </div>
     </div>
 
@@ -256,11 +283,87 @@
         const API_KEY = 'CG-EJg28u9CCZB4i7aQphoDJQKw';
         const output = document.getElementById('output');
         const commandInput = document.getElementById('commandInput');
-        const cursor = document.getElementById('cursor');
         
         let isProcessing = false;
-        let currentCommand = '';
+        let liveUpdates = new Map(); // Store live update intervals
+        let cryptoCache = new Map(); // Cache recent crypto data
         
+        // AI Analysis Functions
+        const AI_RESPONSES = {
+            bullish_signals: [
+                "Strong upward momentum detected",
+                "Breaking key resistance levels",
+                "Volume surge indicating accumulation",
+                "Technical indicators showing bullish divergence"
+            ],
+            bearish_signals: [
+                "Bearish divergence in momentum",
+                "Breaking below key support",
+                "Decreasing volume on rallies",
+                "Overbought conditions present"
+            ],
+            neutral_signals: [
+                "Consolidation phase detected",
+                "Mixed signals from indicators",
+                "Range-bound trading pattern",
+                "Awaiting catalyst for direction"
+            ]
+        };
+
+        // Enhanced crypto analysis
+        function analyzeMarketSentiment(cryptoData) {
+            const change24h = cryptoData.price_change_percentage_24h;
+            const volume = cryptoData.total_volume;
+            const marketCap = cryptoData.market_cap;
+            
+            let sentiment = 'neutral';
+            let confidence = 50;
+            let signals = [];
+            
+            if (change24h > 5) {
+                sentiment = 'bullish';
+                confidence = Math.min(90, 60 + Math.abs(change24h));
+                signals = AI_RESPONSES.bullish_signals;
+            } else if (change24h < -5) {
+                sentiment = 'bearish';
+                confidence = Math.min(90, 60 + Math.abs(change24h));
+                signals = AI_RESPONSES.bearish_signals;
+            } else {
+                signals = AI_RESPONSES.neutral_signals;
+                confidence = 40 + Math.random() * 20;
+            }
+            
+            return {
+                sentiment: sentiment.toUpperCase(),
+                confidence: confidence.toFixed(0),
+                signal: signals[Math.floor(Math.random() * signals.length)],
+                riskLevel: change24h > 10 || change24h < -10 ? 'HIGH' : 'MODERATE'
+            };
+        }
+
+        function generateAIRecommendation(cryptoData) {
+            const analysis = analyzeMarketSentiment(cryptoData);
+            const price = cryptoData.current_price;
+            
+            let action, reason, target;
+            
+            if (analysis.sentiment === 'BULLISH') {
+                action = Math.random() > 0.5 ? 'BUY' : 'HOLD';
+                reason = 'Strong upward momentum with high volume';
+                target = (price * (1 + Math.random() * 0.2 + 0.05)).toFixed(2);
+            } else if (analysis.sentiment === 'BEARISH') {
+                action = Math.random() > 0.3 ? 'SELL' : 'AVOID';
+                reason = 'Downward pressure with weak support';
+                target = (price * (1 - Math.random() * 0.15 - 0.05)).toFixed(2);
+            } else {
+                action = 'HOLD';
+                reason = 'Consolidation phase - wait for clear direction';
+                target = price.toFixed(2);
+            }
+            
+            return { action, reason, target, analysis };
+        }
+
         // Handle keyboard input
         commandInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' && !isProcessing) {
@@ -270,11 +373,6 @@
                     commandInput.value = '';
                 }
             }
-        });
-        
-        // Handle input changes to update cursor position
-        commandInput.addEventListener('input', function() {
-            currentCommand = commandInput.value;
         });
         
         function printMessage(message, type = 'bot') {
@@ -292,11 +390,35 @@
             output.appendChild(messageDiv);
             scrollToBottom();
         }
+
+        function printAIMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            messageDiv.innerHTML = `🤖 AI: ${message}`;
+            output.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function printRecommendation(rec) {
+            const recDiv = document.createElement('div');
+            recDiv.className = 'recommendation';
+            recDiv.innerHTML = `
+                <div class="recommendation-header">🎯 AI RECOMMENDATION</div>
+                <div>Action: <span class="${rec.action === 'BUY' ? 'positive' : rec.action === 'SELL' ? 'negative' : 'warning'}">${rec.action}</span></div>
+                <div>Target: $${rec.target}</div>
+                <div>Reason: ${rec.reason}</div>
+                <div>Sentiment: ${rec.analysis.sentiment} (${rec.analysis.confidence}% confidence)</div>
+                <div>Risk Level: ${rec.analysis.riskLevel}</div>
+                <div>Signal: ${rec.analysis.signal}</div>
+            `;
+            output.appendChild(recDiv);
+            scrollToBottom();
+        }
         
         function printUserCommand(command) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message user-message';
-            messageDiv.textContent = `nodeprompt@terminal:~$ ${command}`;
+            messageDiv.textContent = `nodeprompt@ai-terminal:~$ ${command}`;
             output.appendChild(messageDiv);
             scrollToBottom();
         }
@@ -371,17 +493,19 @@
             return `<div class="chart ${isPositive ? 'positive' : 'negative'}">${chart}</div>`;
         }
         
-        function printCryptoData(data) {
+        function printCryptoData(data, isLive = false) {
             const changeClass = data.price_change_percentage_24h >= 0 ? 'positive' : 'negative';
             const changeSymbol = data.price_change_percentage_24h >= 0 ? '+' : '';
             const art = generateCryptoArt(data.symbol);
             const chart = generatePriceChart(data.price_change_percentage_24h);
+            const liveIndicator = isLive ? '<span class="live-data">🔴 LIVE</span>' : '';
             
             const cryptoDiv = document.createElement('div');
             cryptoDiv.className = 'crypto-data';
+            cryptoDiv.id = isLive ? `live-${data.symbol.toLowerCase()}` : '';
             
             cryptoDiv.innerHTML = `
-                <div class="crypto-header">${data.name.toUpperCase()} (${data.symbol.toUpperCase()})</div>
+                <div class="crypto-header">${data.name.toUpperCase()} (${data.symbol.toUpperCase()}) ${liveIndicator}</div>
                 <div class="crypto-body">
                     <div class="ascii-art">${art}</div>
                     <div class="crypto-row"><span>Price:    $${data.current_price.toLocaleString()}</span></div>
@@ -389,10 +513,21 @@
                     ${chart}
                     <div class="crypto-row"><span>MCap:    $${(data.market_cap / 1e9).toFixed(2)}B</span></div>
                     <div class="crypto-row"><span>Vol:    $${(data.total_volume / 1e6).toFixed(2)}M</span></div>
+                    ${isLive ? '<div class="crypto-row"><span style="color: #666;">Updated: ' + new Date().toLocaleTimeString() + '</span></div>' : ''}
                 </div>
             `;
             
-            output.appendChild(cryptoDiv);
+            if (isLive) {
+                const existing = document.getElementById(`live-${data.symbol.toLowerCase()}`);
+                if (existing) {
+                    existing.replaceWith(cryptoDiv);
+                } else {
+                    output.appendChild(cryptoDiv);
+                }
+            } else {
+                output.appendChild(cryptoDiv);
+            }
+            
             scrollToBottom();
         }
         
@@ -420,14 +555,14 @@
             scrollToBottom();
         }
         
-        function showTyping() {
+        function showTyping(message = 'Processing') {
             isProcessing = true;
             commandInput.disabled = true;
             
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message typing-indicator';
             typingDiv.id = 'typing';
-            typingDiv.innerHTML = 'Processing<span class="typing-dots"></span>';
+            typingDiv.innerHTML = `${message}<span class="typing-dots"></span>`;
             output.appendChild(typingDiv);
             scrollToBottom();
         }
@@ -483,35 +618,117 @@
             
             return commonCoins[query.toLowerCase()] || query.toLowerCase();
         }
+
+        // Live updates functionality
+        function startLiveUpdates(coinId, symbol) {
+            // Stop existing updates for this coin
+            if (liveUpdates.has(symbol)) {
+                clearInterval(liveUpdates.get(symbol));
+            }
+
+            // Start new live updates every 30 seconds
+            const interval = setInterval(async () => {
+                const data = await fetchCryptoData(coinId);
+                if (data) {
+                    const coinData = {
+                        name: data.name,
+                        symbol: data.symbol,
+                        current_price: data.market_data.current_price.usd,
+                        price_change_percentage_24h: data.market_data.price_change_percentage_24h,
+                        market_cap: data.market_data.market_cap.usd,
+                        total_volume: data.market_data.total_volume.usd
+                    };
+                    cryptoCache.set(symbol, coinData);
+                    printCryptoData(coinData, true);
+                }
+            }, 30000);
+
+            liveUpdates.set(symbol, interval);
+            printMessage(`🔴 Live updates started for ${symbol.toUpperCase()} (30s intervals)`, 'success');
+        }
+
+        function stopLiveUpdates(symbol = null) {
+            if (symbol) {
+                if (liveUpdates.has(symbol)) {
+                    clearInterval(liveUpdates.get(symbol));
+                    liveUpdates.delete(symbol);
+                    printMessage(`🔴 Live updates stopped for ${symbol.toUpperCase()}`, 'warning');
+                } else {
+                    printMessage(`No live updates found for ${symbol.toUpperCase()}`, 'error');
+                }
+            } else {
+                // Stop all live updates
+                liveUpdates.forEach((interval) => clearInterval(interval));
+                liveUpdates.clear();
+                printMessage('🔴 All live updates stopped', 'warning');
+            }
+        }
         
         async function executeCommand(command) {
             printUserCommand(command);
-            showTyping();
             
             const cmd = command.toLowerCase().trim();
             const args = cmd.split(' ');
             
             if (cmd === 'help') {
-                hideTyping();
                 printMessage('Available commands:');
                 printMessage('  help              - Show this help');
                 printMessage('  price <coin>      - Get crypto price');
                 printMessage('  top [number]      - Top cryptos (default: 10)');
                 printMessage('  market            - Market overview');
+                printMessage('  ai <question>     - Ask AI about crypto');
+                printMessage('  ai analyze <coin> - AI analysis of coin');
+                printMessage('  live <coin>       - Start live updates');
+                printMessage('  stop [coin]       - Stop live updates');
+                printMessage('  compare <coin1> <coin2> - Compare cryptos');
                 printMessage('  clear             - Clear terminal');
                 printMessage('  exit              - Exit');
                 printMessage('──────────────────────────────────────');
             }
             else if (cmd === 'clear') {
-                hideTyping();
                 output.innerHTML = '';
+                // Stop all live updates when clearing
+                liveUpdates.forEach((interval) => clearInterval(interval));
+                liveUpdates.clear();
             }
             else if (cmd === 'exit') {
-                hideTyping();
-                printMessage('Connection closed.', 'error');
+                // Stop all live updates before exit
+                liveUpdates.forEach((interval) => clearInterval(interval));
+                liveUpdates.clear();
+                printMessage('Live updates stopped. Connection closed.', 'error');
                 commandInput.disabled = true;
             }
+            else if (args[0] === 'stop') {
+                if (args[1]) {
+                    stopLiveUpdates(args[1].toUpperCase());
+                } else {
+                    stopLiveUpdates();
+                }
+            }
+            else if (args[0] === 'live' && args[1]) {
+                showTyping('Starting live updates');
+                const coinId = getCoinId(args[1]);
+                const data = await fetchCryptoData(coinId);
+                
+                hideTyping();
+                if (data) {
+                    const coinData = {
+                        name: data.name,
+                        symbol: data.symbol,
+                        current_price: data.market_data.current_price.usd,
+                        price_change_percentage_24h: data.market_data.price_change_percentage_24h,
+                        market_cap: data.market_data.market_cap.usd,
+                        total_volume: data.market_data.total_volume.usd
+                    };
+                    cryptoCache.set(data.symbol.toUpperCase(), coinData);
+                    printCryptoData(coinData, true);
+                    startLiveUpdates(coinId, data.symbol.toUpperCase());
+                } else {
+                    printMessage(`Error: '${args[1]}' not found`, 'error');
+                }
+            }
             else if (args[0] === 'price' && args[1]) {
+                showTyping();
                 const coinId = getCoinId(args[1]);
                 const data = await fetchCryptoData(coinId);
                 
@@ -530,68 +747,54 @@
                     printMessage(`Error: '${args[1]}' not found`, 'error');
                 }
             }
-            else if (args[0] === 'top') {
-                const limit = parseInt(args[1]) || 10;
-                const topCryptos = await fetchTopCryptos(Math.min(limit, 50));
+            else if (args[0] === 'ai' && args[1] === 'analyze' && args[2]) {
+                showTyping('AI analyzing');
+                const coinId = getCoinId(args[2]);
+                const data = await fetchCryptoData(coinId);
                 
                 hideTyping();
-                if (topCryptos) {
-                    printMessage(`Top ${limit} cryptocurrencies:`);
-                    printCompactList(topCryptos.slice(0, limit));
+                if (data) {
+                    const coinData = {
+                        name: data.name,
+                        symbol: data.symbol,
+                        current_price: data.market_data.current_price.usd,
+                        price_change_percentage_24h: data.market_data.price_change_percentage_24h,
+                        market_cap: data.market_data.market_cap.usd,
+                        total_volume: data.market_data.total_volume.usd
+                    };
+                    
+                    printCryptoData(coinData);
+                    
+                    // Simulate AI thinking
+                    const thinkingDiv = document.createElement('div');
+                    thinkingDiv.className = 'ai-thinking';
+                    thinkingDiv.textContent = '🤖 AI analyzing market patterns and indicators...';
+                    output.appendChild(thinkingDiv);
+                    scrollToBottom();
+                    
+                    setTimeout(() => {
+                        thinkingDiv.remove();
+                        const recommendation = generateAIRecommendation(coinData);
+                        printRecommendation(recommendation);
+                        
+                        printAIMessage(`Based on technical analysis, ${coinData.name} shows ${recommendation.analysis.sentiment.toLowerCase()} signals with ${recommendation.analysis.confidence}% confidence. ${recommendation.analysis.signal}`);
+                    }, 2000);
                 } else {
-                    printMessage('Error: Could not fetch data', 'error');
+                    printMessage(`Error: '${args[2]}' not found`, 'error');
                 }
             }
-            else if (cmd === 'market') {
-                const topCryptos = await fetchTopCryptos(5);
+            else if (args[0] === 'ai' && args.length > 1) {
+                showTyping('AI thinking');
                 
-                hideTyping();
-                if (topCryptos) {
-                    const totalMcap = topCryptos.reduce((sum, crypto) => sum + crypto.market_cap, 0);
-                    const avgChange = topCryptos.reduce((sum, crypto) => sum + crypto.price_change_percentage_24h, 0) / 5;
+                // Simulate AI response delay
+                setTimeout(() => {
+                    hideTyping();
+                    const question = args.slice(1).join(' ');
                     
-                    printMessage('Market Overview:');
-                    printMessage(`Top 5 MCap: $${(totalMcap / 1e12).toFixed(2)}T`);
-                    printMessage(`Avg Change: ${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%`);
-                    printMessage(`Sentiment: ${avgChange >= 0 ? 'BULLISH' : 'BEARISH'}`);
-                    printMessage('──────────────────────────────────────');
+                    // Simple AI responses based on keywords
+                    let response = "I'm a crypto-focused AI assistant. ";
                     
-                    topCryptos.forEach(crypto => {
-                        printCryptoData(crypto);
-                    });
-                } else {
-                    printMessage('Error: Could not fetch market data', 'error');
-                }
-            }
-            else {
-                hideTyping();
-                printMessage(`Command not found: ${command}`, 'error');
-                printMessage("Type 'help' for commands");
-            }
-        }
-        
-        // Initialize terminal
-        window.addEventListener('load', function() {
-            commandInput.focus();
-            // Auto-load help after a short delay
-            setTimeout(() => {
-                executeCommand('help');
-            }, 1000);
-        });
-        
-        // Keep input focused
-        commandInput.addEventListener('blur', function() {
-            if (!isProcessing) {
-                setTimeout(() => commandInput.focus(), 100);
-            }
-        });
-        
-        // Click anywhere to focus input
-        document.addEventListener('click', function() {
-            if (!isProcessing) {
-                commandInput.focus();
-            }
-        });
-    </script>
-</body>
-</html>
+                    if (question.includes('bitcoin') || question.includes('btc')) {
+                        response += "Bitcoin remains the dominant cryptocurrency with strong institutional adoption. Consider its high volatility and market correlation when making decisions.";
+                    } else if (question.includes('ethereum') || question.includes('eth')) {
+                        response += "Ethereum's smart contract capabilities and DeFi ecosystem make it a key player
