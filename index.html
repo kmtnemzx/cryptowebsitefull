@@ -19,7 +19,7 @@
             display: flex;
             flex-direction: column;
             font-size: 13px;
-            overflow: auto;
+            overflow: hidden;
         }
         
         .terminal-header {
@@ -58,12 +58,13 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: auto;
+            overflow: hidden;
         }
         
         .terminal-output {
             flex: 1;
             padding: 10px;
+            padding-bottom: 60px;
             overflow-y: auto;
             font-size: 13px;
             line-height: 1.2;
@@ -81,7 +82,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-        
         }
         
         .prompt {
@@ -101,12 +101,7 @@
         }
         
         .cursor {
-            position: absolute;
-            display: inline-block;
-            width: 6px;
-            height: 13px;
-            background: #00ff00;
-            animation: blink 1s infinite;
+            display: none;
         }
         
         @keyframes blink {
@@ -253,8 +248,7 @@
         
         <div class="terminal-input">
             <span class="prompt">nodeprompt@terminal:~$ </span>
-            <span id="typed-text"></span>
-            <span class="cursor" id="cursor"></span>
+            <input type="text" class="input-field" id="commandInput" autocomplete="off" spellcheck="false">
         </div>
     </div>
 
@@ -265,8 +259,10 @@
         const cursor = document.getElementById('cursor');
         
         let isProcessing = false;
+        let currentCommand = '';
         
-        function handleKeyPress(event) {
+        // Handle keyboard input
+        commandInput.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' && !isProcessing) {
                 const command = commandInput.value.trim();
                 if (command) {
@@ -274,7 +270,12 @@
                     commandInput.value = '';
                 }
             }
-        }
+        });
+        
+        // Handle input changes to update cursor position
+        commandInput.addEventListener('input', function() {
+            currentCommand = commandInput.value;
+        });
         
         function printMessage(message, type = 'bot') {
             const messageDiv = document.createElement('div');
@@ -383,11 +384,11 @@
                 <div class="crypto-header">${data.name.toUpperCase()} (${data.symbol.toUpperCase()})</div>
                 <div class="crypto-body">
                     <div class="ascii-art">${art}</div>
-                    <div class="crypto-row"><span>Price:    <span>$${data.current_price.toLocaleString()}</span></div>
-                    <div class="crypto-row"><span>24h:    <span class="${changeClass}">${changeSymbol}${data.price_change_percentage_24h.toFixed(2)}%</span></div>
+                    <div class="crypto-row"><span>Price:</span><span>$${data.current_price.toLocaleString()}</span></div>
+                    <div class="crypto-row"><span>24h:</span><span class="${changeClass}">${changeSymbol}${data.price_change_percentage_24h.toFixed(2)}%</span></div>
                     ${chart}
-                    <div class="crypto-row"><span>MCap:    <span>$${(data.market_cap / 1e9).toFixed(2)}B</span></div>
-                    <div class="crypto-row"><span>Vol:    <span>$${(data.total_volume / 1e6).toFixed(2)}M</span></div>
+                    <div class="crypto-row"><span>MCap:</span><span>$${(data.market_cap / 1e9).toFixed(2)}B</span></div>
+                    <div class="crypto-row"><span>Vol:</span><span>$${(data.total_volume / 1e6).toFixed(2)}M</span></div>
                 </div>
             `;
             
@@ -399,7 +400,7 @@
             const listDiv = document.createElement('div');
             listDiv.className = 'compact-list';
             
-            let html = '<div style="color: #888; margin-bottom: 4px;">RANK | NAME        | PRICE      | 24H    | MCAP</div>';
+            let html = '<div style="color: #888; margin-bottom: 4px;">RANK | NAME        | PRICE      | 24H     | MCAP</div>';
             html += '<div style="color: #333; margin-bottom: 4px;">-----|-------------|------------|--------|--------</div>';
             
             cryptos.forEach((crypto, index) => {
@@ -408,10 +409,10 @@
                 const rank = (index + 1).toString().padStart(2, ' ');
                 const name = crypto.symbol.toUpperCase().padEnd(11, ' ');
                 const price = ('$' + crypto.current_price.toLocaleString()).padEnd(10, ' ');
-                const change = (changeSymbol + crypto.price_change_percentage_24h.toFixed(1) + '%').padEnd(6, ' ');
+                const change = (changeSymbol + crypto.price_change_percentage_24h.toFixed(1) + '%').padEnd(7, ' ');
                 const mcap = ('$' + (crypto.market_cap / 1e9).toFixed(1) + 'B').padEnd(8, ' ');
                 
-                html += `<div class="compact-row">${rank}   | ${name} | ${price} | ${changeClass} ${change} | ${mcap}</div>`;
+                html += `<div class="compact-row">${rank}   | ${name} | ${price} | <span class="${changeClass}">${change}</span> | ${mcap}</div>`;
             });
             
             listDiv.innerHTML = html;
@@ -422,7 +423,6 @@
         function showTyping() {
             isProcessing = true;
             commandInput.disabled = true;
-            cursor.style.display = 'none';
             
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message typing-indicator';
@@ -438,7 +438,6 @@
             
             isProcessing = false;
             commandInput.disabled = false;
-            cursor.style.display = 'inline-block';
             commandInput.focus();
         }
         
@@ -511,7 +510,6 @@
                 hideTyping();
                 printMessage('Connection closed.', 'error');
                 commandInput.disabled = true;
-                cursor.style.display = 'none';
             }
             else if (args[0] === 'price' && args[1]) {
                 const coinId = getCoinId(args[1]);
@@ -573,21 +571,27 @@
         }
         
         // Initialize terminal
-        commandInput.focus();
-        
-        // Keep cursor active
-        commandInput.addEventListener('focus', () => {
-            cursor.style.display = 'inline-block';
+        window.addEventListener('load', function() {
+            commandInput.focus();
+            // Auto-load help after a short delay
+            setTimeout(() => {
+                executeCommand('help');
+            }, 1000);
         });
         
-        commandInput.addEventListener('blur', () => {
-            setTimeout(() => commandInput.focus(), 100);
+        // Keep input focused
+        commandInput.addEventListener('blur', function() {
+            if (!isProcessing) {
+                setTimeout(() => commandInput.focus(), 100);
+            }
         });
         
-        // Auto-load market data
-        setTimeout(() => {
-            executeCommand('help');
-        }, 1000);
+        // Click anywhere to focus input
+        document.addEventListener('click', function() {
+            if (!isProcessing) {
+                commandInput.focus();
+            }
+        });
     </script>
 </body>
 </html>
