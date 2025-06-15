@@ -275,7 +275,7 @@
                 if (command && !isProcessing) {
                     executeCommand(command);
                     commandInput.value = '';
-                    output.scrollTop = output.scrollHeight;
+                    window.scrollTo(0, document.body.scrollHeight);
                 }
             }
         });
@@ -285,7 +285,7 @@
             div.className = `message ${type}-message`;
             div.textContent = text;
             output.appendChild(div);
-            output.scrollTop = output.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
         }
         
         function addHTML(html) {
@@ -293,7 +293,7 @@
             div.className = 'message bot-message';
             div.innerHTML = html;
             output.appendChild(div);
-            output.scrollTop = output.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
         }
         
         function showTyping() {
@@ -303,7 +303,7 @@
             div.className = 'typing-indicator';
             div.innerHTML = 'Processing<span class="typing-dots"></span>';
             output.appendChild(div);
-            output.scrollTop = output.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
         }
         
         function hideTyping() {
