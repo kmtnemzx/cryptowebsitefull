@@ -638,6 +638,7 @@
                             hideTyping();
                             const response = getAIResponse(question);
                             addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
+                            scrollToBottom();
                         }, 100);
                         return;
                     } else {
