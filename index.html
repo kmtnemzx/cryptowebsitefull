@@ -633,8 +633,13 @@
                         }
                     } else if (parts.length > 1) {
                         const question = parts.slice(1).join(' ');
-                        const response = getAIResponse(question);
-                        addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
+                        showTyping();
+                        setTimeout(() => {
+                            hideTyping();
+                            const response = getAIResponse(question);
+                            addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
+                        }, 100);
+                        return;
                     } else {
                         addMessage('Usage: ai <question> or ai analyze <coin>', 'error');
                     }
