@@ -634,13 +634,19 @@
                     } else if (parts.length > 1) {
                         const question = parts.slice(1).join(' ');
                         showTyping();
-                        setTimeout(() => {
-                            hideTyping();
-                            const response = getAIResponse(question);
-                            addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
-                            scrollToBottom();
-                        }, 100);
-                        return;
+    
+                        // Use requestAnimationFrame to ensure proper UI updates
+                        requestAnimationFrame(() => {
+                        hideTyping();
+                        const response = getAIResponse(question);
+                        addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
+        
+                            // Force a reflow to ensure the content is actually rendered
+                        const terminal = document.getElementById('terminal');
+                        terminal.offsetHeight; // Force reflow
+                        terminal.scrollTop = terminal.scrollHeight;
+                    });
+                    return;
                     } else {
                         addMessage('Usage: ai <question> or ai analyze <coin>', 'error');
                     }
