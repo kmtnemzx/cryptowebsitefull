@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="carbon__2_-removebg-preview.png">
+    <link rel="icon" type="image/png" href="carbon (2) (1).png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NodePrompt Terminal</title>
@@ -31,16 +31,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky; /* stays at top */
+            position: sticky;
             top: 0;
             z-index: 10;
-            
         }
         
         .terminal-buttons {
             display: flex;
             gap: 4px;
         }
+        
         #boot-screen {
             position: fixed;
             top: 0;
@@ -53,11 +53,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-}
+        }
 
         #boot-text {
             white-space: pre-wrap;
-}
+        }
+        
         .btn {
             width: 10px;
             height: 10px;
@@ -108,7 +109,7 @@
             color: #00ff00;
             font-weight: bold;
             user-select: none;
-            margin-right: 5px; /* Add some space between prompt and input */
+            margin-right: 5px;
         }
         
         .input-field {
@@ -207,8 +208,8 @@
         .live-indicator {
             color: #ff4444;
             animation: pulse 2s infinite;
-
         }
+        
         .compact-list {
             margin: 2px 0;
         }
@@ -252,7 +253,7 @@
             <div class="message bot-message">AI Assistant + Live Crypto Data</div>
             <div class="message bot-message">@builtbyadam</div>
             <div class="message bot-message">Type 'help' to see available commands</div>
-        </div> <!-- closes terminal-output -->
+        </div>
     </div>
         
     <div class="terminal-input">
@@ -262,7 +263,8 @@
     </div>
 
     <script>
-        const API_KEY = 'APIKEYHERE';
+        // CoinGecko API key
+        const API_KEY = 'CG-A4oLB7rcDxWinXjsBFD1Frmz';
         const output = document.getElementById('output');
         const commandInput = document.getElementById('commandInput');
         
@@ -284,7 +286,7 @@
                 commandInput.focus();
             }
         }
-        //cryptolist command testing
+        
         function printCompactList(cryptos) {
             const listDiv = document.createElement('div');
             listDiv.className = 'compact-list';
@@ -301,13 +303,14 @@
                 const change = (changeSymbol + crypto.price_change_percentage_24h.toFixed(1) + '%').padEnd(6, ' ');
                 const mcap = ('$' + (crypto.market_cap / 1e9).toFixed(1) + 'B').padEnd(8, ' ');
                 
-                html += `<div class="compact-row">${rank}   | ${name} | ${price} | ${changeClass} ${change} | ${mcap}</div>`;
+                html += `<div class="compact-row">${rank}   | ${name} | ${price} | <span class="${changeClass}">${change}</span> | ${mcap}</div>`;
             });
             
             listDiv.innerHTML = html;
             output.appendChild(listDiv);
             scrollToBottom();
         }
+        
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             commandInput.focus();
@@ -330,38 +333,37 @@
                 }
             }
         });
+        
         document.addEventListener("DOMContentLoaded", () => {
-          const bootLines = [
-            "Initializing NodePrompt OS...",
-            "Loading modules...",
-            "Checking system integrity...",
-            "Starting AI subsystems...",
-            "Connecting to neural network...",
-            "Loading user preferences...",
-            "Boot sequence complete.",
-            "",
-            "[████████████████████████████████████████] 100%"
-  ];
+            const bootLines = [
+                "Initializing NodePrompt OS...",
+                "Loading modules...",
+                "Checking system integrity...",
+                "Starting AI subsystems...",
+                "Connecting to neural network...",
+                "Loading user preferences...",
+                "Boot sequence complete.",
+                "",
+                "[████████████████████████████████████████] 100%"
+            ];
 
-  const bootText = document.getElementById("boot-text");
-  let i = 0;
+            const bootText = document.getElementById("boot-text");
+            let i = 0;
 
-  function showNextLine() {
-    if (i < bootLines.length) {
-      bootText.textContent += bootLines[i] + "\n";
-      i++;
+            function showNextLine() {
+                if (i < bootLines.length) {
+                    bootText.textContent += bootLines[i] + "\n";
+                    i++;
 
-      // example: faster for last line
-      const delay = (i === bootLines.length - 1) ? 200 : 700;
+                    const delay = (i === bootLines.length - 1) ? 200 : 700;
+                    setTimeout(showNextLine, delay);
+                } else {
+                    document.getElementById("boot-screen").style.display = "none";
+                }
+            }
 
-      setTimeout(showNextLine, delay);
-    } else {
-      document.getElementById("boot-screen").style.display = "none";
-    }
-  }
-
-  showNextLine();
-});
+            showNextLine();
+        });
         
         function addMessage(text, type = 'bot') {
             const div = document.createElement('div');
@@ -396,22 +398,96 @@
             ensureFocus();
         }
         
+        function scrollToBottom() {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+        
         async function fetchCryptoData(coinId) {
             try {
-                const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}?x_cg_demo_api_key=${API_KEY}`);
-                if (!response.ok) throw new Error('API failed');
+                // Build URL with API key
+                let url = `https://api.coingecko.com/api/v3/coins/${coinId}?x_cg_demo_api_key=${API_KEY}`;
+                
+                console.log('Fetching CoinGecko:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    console.error('API Response:', response.status, response.statusText);
+                    if (response.status === 429) {
+                        throw new Error('Rate limit exceeded. Please wait a moment.');
+                    } else if (response.status === 404) {
+                        throw new Error(`Coin "${coinId}" not found. Check spelling.`);
+                    } else {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+                }
+                
                 const data = await response.json();
+                
                 return {
                     name: data.name,
                     symbol: data.symbol,
                     price: data.market_data.current_price.usd,
                     change24h: data.market_data.price_change_percentage_24h,
                     marketCap: data.market_data.market_cap.usd,
-                    volume: data.market_data.total_volume.usd
+                    volume: data.market_data.total_volume.usd,
+                    source: 'coingecko'
                 };
             } catch (error) {
-                console.error('API Error:', error);
-                return null;
+                console.error('CoinGecko API Error:', error);
+                return { error: error.message };
+            }
+        }
+
+        async function fetchDexScreenerData(query) {
+            try {
+                // Search by token address or symbol
+                let url;
+                if (query.length > 20) {
+                    // Looks like a token address
+                    url = `https://api.dexscreener.com/latest/dex/tokens/${query}`;
+                } else {
+                    // Search by symbol
+                    url = `https://api.dexscreener.com/latest/dex/search/?q=${query}`;
+                }
+                
+                console.log('Fetching DEXScreener:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`DEXScreener API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.pairs || data.pairs.length === 0) {
+                    return { error: `No trading pairs found for "${query}" on DEXScreener` };
+                }
+                
+                // Get the first Solana pair or the most liquid pair
+                let bestPair = data.pairs.find(p => p.chainId === 'solana') || data.pairs[0];
+                
+                if (!bestPair) {
+                    return { error: `No suitable trading pair found for "${query}"` };
+                }
+                
+                return {
+                    name: bestPair.baseToken.name,
+                    symbol: bestPair.baseToken.symbol,
+                    price: parseFloat(bestPair.priceUsd) || 0,
+                    change24h: parseFloat(bestPair.priceChange?.h24) || 0,
+                    marketCap: parseFloat(bestPair.marketCap) || 0,
+                    volume: parseFloat(bestPair.volume?.h24) || 0,
+                    liquidity: parseFloat(bestPair.liquidity?.usd) || 0,
+                    pairAddress: bestPair.pairAddress,
+                    dexId: bestPair.dexId,
+                    chainId: bestPair.chainId,
+                    source: 'dexscreener'
+                };
+            } catch (error) {
+                console.error('DEXScreener API Error:', error);
+                return { error: error.message };
             }
         }
         
@@ -422,23 +498,51 @@
                 'ada': 'cardano', 'cardano': 'cardano',
                 'sol': 'solana', 'solana': 'solana',
                 'xrp': 'ripple', 'ripple': 'ripple',
-                'doge': 'dogecoin', 'dogecoin': 'dogecoin'
+                'doge': 'dogecoin', 'dogecoin': 'dogecoin',
+                'bnb': 'binancecoin', 'binancecoin': 'binancecoin',
+                'matic': 'polygon', 'polygon': 'polygon',
+                'dot': 'polkadot', 'polkadot': 'polkadot',
+                'avax': 'avalanche-2', 'avalanche': 'avalanche-2'
             };
             return coins[symbol.toLowerCase()] || symbol.toLowerCase();
         }
         
         function displayCrypto(data, isLive = false) {
+            if (data.error) {
+                addMessage(`Error: ${data.error}`, 'error');
+                return;
+            }
+            
             const changeClass = data.change24h >= 0 ? 'positive' : 'negative';
             const changeSign = data.change24h >= 0 ? '+' : '';
             const liveText = isLive ? ' <span class="live-indicator">● LIVE</span>' : '';
+            const sourceText = data.source === 'dexscreener' ? ' [DEX]' : ' [CG]';
+            
+            let extraInfo = '';
+            if (data.source === 'dexscreener') {
+                extraInfo = `
+                    <div class="crypto-row">
+                        <span>Liquidity:</span>
+                        <span>${data.liquidity ? (data.liquidity / 1e6).toFixed(2) + 'M' : 'N/A'}</span>
+                    </div>
+                    <div class="crypto-row">
+                        <span>DEX:</span>
+                        <span>${data.dexId?.toUpperCase() || 'N/A'}</span>
+                    </div>
+                    <div class="crypto-row">
+                        <span>Chain:</span>
+                        <span>${data.chainId?.toUpperCase() || 'N/A'}</span>
+                    </div>
+                `;
+            }
             
             const html = `
                 <div class="crypto-data" ${isLive ? `id="live-${data.symbol}"` : ''}>
-                    <div class="crypto-header">${data.name} (${data.symbol.toUpperCase()})${liveText}</div>
+                    <div class="crypto-header">${data.name} (${data.symbol.toUpperCase()})${sourceText}${liveText}</div>
                     <div class="crypto-body">
                         <div class="crypto-row">
                             <span>Price:</span>
-                            <span>$${data.price.toLocaleString()}</span>
+                            <span>${data.price < 0.01 ? data.price.toExponential(4) : data.price.toLocaleString()}</span>
                         </div>
                         <div class="crypto-row">
                             <span>24h Change:</span>
@@ -446,12 +550,13 @@
                         </div>
                         <div class="crypto-row">
                             <span>Market Cap:</span>
-                            <span>$${(data.marketCap / 1e9).toFixed(2)}B</span>
+                            <span>${data.marketCap ? (data.marketCap / 1e9).toFixed(2) + 'B' : 'N/A'}</span>
                         </div>
                         <div class="crypto-row">
-                            <span>Volume:</span>
-                            <span>$${(data.volume / 1e6).toFixed(2)}M</span>
+                            <span>Volume (24h):</span>
+                            <span>${data.volume ? (data.volume / 1e6).toFixed(2) + 'M' : 'N/A'}</span>
                         </div>
+                        ${extraInfo}
                         ${isLive ? `<div class="crypto-row"><span>Updated:</span><span>${new Date().toLocaleTimeString()}</span></div>` : ''}
                     </div>
                 </div>
@@ -476,7 +581,7 @@
             
             liveIntervals[symbol] = setInterval(async () => {
                 const data = await fetchCryptoData(coinId);
-                if (data) {
+                if (data && !data.error) {
                     displayCrypto(data, true);
                 }
             }, 30000); // 30 second updates
@@ -542,12 +647,43 @@
                     addMessage('Available commands:');
                     addMessage('  help              - Show this help');
                     addMessage('  price <coin>      - Get crypto price');
+                    addMessage('  dex <token>       - Search DEXScreener for Solana tokens');
+                    addMessage('  search <token>    - Try both CoinGecko and DEXScreener');
                     addMessage('  live <coin>       - Start live updates');
                     addMessage('  stop [coin]       - Stop live updates');
                     addMessage('  ai <question>     - Ask AI');
                     addMessage('  ai analyze <coin> - AI analysis');
                     addMessage('  clear             - Clear screen');
                     addMessage('  exit              - Exit terminal');
+                    addMessage('  test              - Test API connections');
+                    addMessage('');
+                    addMessage('Examples:');
+                    addMessage('  price btc         - Bitcoin from CoinGecko');
+                    addMessage('  dex BONK          - BONK token from DEXScreener');
+                    addMessage('  search WIF        - Try both APIs for WIF');
+                    break;
+                    
+                case 'test':
+                    showTyping();
+                    addMessage('Testing CoinGecko API...', 'warning');
+                    const testDataCG = await fetchCryptoData('bitcoin');
+                    
+                    if (testDataCG.error) {
+                        addMessage(`✗ CoinGecko: ${testDataCG.error}`, 'error');
+                    } else {
+                        addMessage(`✓ CoinGecko: Retrieved ${testDataCG.name}`, 'success');
+                    }
+                    
+                    addMessage('Testing DEXScreener API...', 'warning');
+                    const testDataDEX = await fetchDexScreenerData('SOL');
+                    
+                    if (testDataDEX.error) {
+                        addMessage(`✗ DEXScreener: ${testDataDEX.error}`, 'error');
+                    } else {
+                        addMessage(`✓ DEXScreener: Found ${testDataDEX.name}`, 'success');
+                    }
+                    
+                    hideTyping();
                     break;
                     
                 case 'clear':
@@ -568,13 +704,58 @@
                         const data = await fetchCryptoData(coinId);
                         hideTyping();
                         
-                        if (data) {
-                            displayCrypto(data);
-                        } else {
-                            addMessage(`Error: '${parts[1]}' not found`, 'error');
-                        }
+                        displayCrypto(data);
                     } else {
                         addMessage('Usage: price <coin>', 'error');
+                        addMessage('Example: price btc, price ethereum');
+                    }
+                    break;
+
+                case 'dex':
+                    if (parts[1]) {
+                        showTyping();
+                        const query = parts.slice(1).join(' ');
+                        const data = await fetchDexScreenerData(query);
+                        hideTyping();
+                        
+                        displayCrypto(data);
+                    } else {
+                        addMessage('Usage: dex <token>', 'error');
+                        addMessage('Example: dex BONK, dex WIF, dex <token_address>');
+                    }
+                    break;
+
+                case 'search':
+                    if (parts[1]) {
+                        showTyping();
+                        const query = parts[1];
+                        
+                        // Try CoinGecko first
+                        const coinId = getCoinId(query);
+                        let cgData = await fetchCryptoData(coinId);
+                        
+                        // If CoinGecko fails, try DEXScreener
+                        let dexData = null;
+                        if (cgData.error) {
+                            dexData = await fetchDexScreenerData(query);
+                        }
+                        
+                        hideTyping();
+                        
+                        if (!cgData.error) {
+                            addMessage(`Found on CoinGecko:`, 'success');
+                            displayCrypto(cgData);
+                        } else if (dexData && !dexData.error) {
+                            addMessage(`Found on DEXScreener:`, 'success');
+                            displayCrypto(dexData);
+                        } else {
+                            addMessage(`Token "${query}" not found on either CoinGecko or DEXScreener`, 'error');
+                            if (cgData.error) addMessage(`CoinGecko: ${cgData.error}`, 'error');
+                            if (dexData && dexData.error) addMessage(`DEXScreener: ${dexData.error}`, 'error');
+                        }
+                    } else {
+                        addMessage('Usage: search <token>', 'error');
+                        addMessage('Example: search PEPE, search WIF');
                     }
                     break;
                     
@@ -585,14 +766,15 @@
                         const data = await fetchCryptoData(coinId);
                         hideTyping();
                         
-                        if (data) {
+                        if (!data.error) {
                             displayCrypto(data, true);
                             startLiveUpdates(coinId, data.symbol.toUpperCase());
                         } else {
-                            addMessage(`Error: '${parts[1]}' not found`, 'error');
+                            displayCrypto(data);
                         }
                     } else {
                         addMessage('Usage: live <coin>', 'error');
+                        addMessage('Example: live btc, live ethereum');
                     }
                     break;
                     
@@ -611,7 +793,7 @@
                         const data = await fetchCryptoData(coinId);
                         hideTyping();
                         
-                        if (data) {
+                        if (!data.error) {
                             displayCrypto(data);
                             const analysis = analyzePrice(data);
                             
@@ -625,24 +807,17 @@
                                 </div>
                             `);
                         } else {
-                            addMessage(`Error: '${parts[2]}' not found`, 'error');
+                            displayCrypto(data);
                         }
                     } else if (parts.length > 1) {
                         const question = parts.slice(1).join(' ');
                         showTyping();
-    
-                        // Use requestAnimationFrame to ensure proper UI updates
-                        requestAnimationFrame(() => {
-                        hideTyping();
-                        const response = getAIResponse(question);
-                        addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
-        
-                            // Force a reflow to ensure the content is actually rendered
-                        const terminal = document.getElementById('terminal');
-                        terminal.offsetHeight; // Force reflow
-                        terminal.scrollTop = terminal.scrollHeight;
-                    });
-                    return;
+                        
+                        setTimeout(() => {
+                            hideTyping();
+                            const response = getAIResponse(question);
+                            addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
+                        }, 1000);
                     } else {
                         addMessage('Usage: ai <question> or ai analyze <coin>', 'error');
                     }
@@ -653,11 +828,6 @@
                     addMessage("Type 'help' for available commands");
             }
         }
-        
-        // Test the input immediately
-        console.log('Script loaded, input element:', commandInput);
-        console.log('Input focused:', document.activeElement === commandInput);
     </script>
 </body>
 </html>
-
