@@ -251,7 +251,6 @@
                 </div>
             </div>
             <div class="message bot-message">AI Assistant + Live Crypto Data</div>
-            <div class="message bot-message">@builtbyadam</div>
             <div class="message bot-message">Type 'help' to see available commands</div>
         </div>
     </div>
@@ -398,8 +397,76 @@
             ensureFocus();
         }
         
-        function scrollToBottom() {
-            window.scrollTo(0, document.body.scrollHeight);
+        // Contract address detection and info
+        function isContractAddress(input) {
+            // Ethereum address (0x followed by 40 hex chars)
+            const ethPattern = /^0x[a-fA-F0-9]{40}$/;
+            // Solana address (32-44 base58 chars)
+            const solPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+            
+            return {
+                isEth: ethPattern.test(input),
+                isSol: solPattern.test(input),
+                isContract: ethPattern.test(input) || solPattern.test(input)
+            };
+        }
+
+        async function fetchContractInfo(address) {
+            const addressInfo = isContractAddress(address);
+            
+            if (!addressInfo.isContract) {
+                return { error: "Invalid contract address format" };
+            }
+
+            try {
+                // Try DEXScreener first (works for both ETH and SOL)
+                const dexData = await fetchDexScreenerData(address);
+                if (!dexData.error) {
+                    return { ...dexData, contractAddress: address };
+                }
+
+                // If DEXScreener fails and it's an ETH address, try CoinGecko
+                if (addressInfo.isEth) {
+                    const cgData = await fetchCoinGeckoByContract(address);
+                    if (!cgData.error) {
+                        return { ...cgData, contractAddress: address };
+                    }
+                }
+
+                return { error: `No data found for contract address: ${address.slice(0, 8)}...${address.slice(-6)}` };
+            } catch (error) {
+                return { error: `Failed to fetch contract data: ${error.message}` };
+            }
+        }
+
+        async function fetchCoinGeckoByContract(address) {
+            try {
+                // First, get coin info by contract address
+                const searchUrl = `https://api.coingecko.com/api/v3/coins/ethereum/contract/${address}?x_cg_demo_api_key=${API_KEY}`;
+                
+                console.log('Fetching CoinGecko by contract:', searchUrl);
+                
+                const response = await fetch(searchUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Contract not found on CoinGecko: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                return {
+                    name: data.name,
+                    symbol: data.symbol,
+                    price: data.market_data.current_price.usd,
+                    change24h: data.market_data.price_change_percentage_24h,
+                    marketCap: data.market_data.market_cap.usd,
+                    volume: data.market_data.total_volume.usd,
+                    source: 'coingecko-contract'
+                };
+            } catch (error) {
+                console.error('CoinGecko Contract API Error:', error);
+                return { error: error.message };
+            }
         }
         
         async function fetchCryptoData(coinId) {
@@ -649,6 +716,7 @@
                     addMessage('  price <coin>      - Get crypto price');
                     addMessage('  dex <token>       - Search DEXScreener for Solana tokens');
                     addMessage('  search <token>    - Try both CoinGecko and DEXScreener');
+                    addMessage('  contract <addr>   - Get token info by contract address');
                     addMessage('  live <coin>       - Start live updates');
                     addMessage('  stop [coin]       - Stop live updates');
                     addMessage('  ai <question>     - Ask AI');
@@ -661,6 +729,8 @@
                     addMessage('  price btc         - Bitcoin from CoinGecko');
                     addMessage('  dex BONK          - BONK token from DEXScreener');
                     addMessage('  search WIF        - Try both APIs for WIF');
+                    addMessage('  contract 0x123... - ETH contract address');
+                    addMessage('  contract ABC123   - SOL contract address');
                     break;
                     
                 case 'test':
@@ -730,6 +800,18 @@
                         showTyping();
                         const query = parts[1];
                         
+                        // Check if it's a contract address first
+                        const addressInfo = isContractAddress(query);
+                        if (addressInfo.isContract) {
+                            const network = addressInfo.isEth ? 'Ethereum' : 'Solana';
+                            addMessage(`Detected ${network} contract address, fetching info...`, 'warning');
+                            
+                            const contractData = await fetchContractInfo(query);
+                            hideTyping();
+                            displayCrypto(contractData);
+                            break;
+                        }
+                        
                         // Try CoinGecko first
                         const coinId = getCoinId(query);
                         let cgData = await fetchCryptoData(coinId);
@@ -756,6 +838,37 @@
                     } else {
                         addMessage('Usage: search <token>', 'error');
                         addMessage('Example: search PEPE, search WIF');
+                    }
+                    break;
+
+                case 'contract':
+                    if (parts[1]) {
+                        showTyping();
+                        const address = parts[1];
+                        const addressInfo = isContractAddress(address);
+                        
+                        if (!addressInfo.isContract) {
+                            hideTyping();
+                            addMessage('Invalid contract address format', 'error');
+                            addMessage('Ethereum: 0x followed by 40 hex characters', 'warning');
+                            addMessage('Solana: 32-44 base58 characters', 'warning');
+                            break;
+                        }
+                        
+                        const network = addressInfo.isEth ? 'Ethereum' : 'Solana';
+                        addMessage(`Fetching ${network} contract info...`, 'warning');
+                        
+                        const data = await fetchContractInfo(address);
+                        hideTyping();
+                        
+                        if (!data.error) {
+                            addMessage(`✓ Contract found on ${network}:`, 'success');
+                        }
+                        displayCrypto(data);
+                    } else {
+                        addMessage('Usage: contract <address>', 'error');
+                        addMessage('Example: contract 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984');
+                        addMessage('Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
                     }
                     break;
                     
