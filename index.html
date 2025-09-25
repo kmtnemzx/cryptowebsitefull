@@ -7,12 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nodeprompt Terminal</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Courier New', monospace;
             background: #000;
@@ -23,7 +18,6 @@
             font-size: 13px;
             overflow: auto;
         }
-        
         .terminal-header {
             background: #222;
             color: #0f0;
@@ -35,196 +29,53 @@
             top: 0;
             z-index: 10;
         }
-        
-        .terminal-buttons {
-            display: flex;
-            gap: 4px;
-        }
-        
+        .terminal-buttons { display: flex; gap: 4px; }
         #boot-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: black;
-            color: #0f0;
-            font-family: monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; color: #0f0; font-family: monospace;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        #boot-text {
-            white-space: pre-wrap;
-        }
-        
-        .btn {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            border: none;
-        }
-        
+        #boot-text { white-space: pre-wrap; }
+        .btn { width: 10px; height: 10px; border-radius: 50%; border: none; }
         .btn.close { background: #ff5f57; }
         .btn.minimize { background: #ffbd2e; }
         .btn.maximize { background: #28ca42; }
-        
-        .terminal-title {
-            color: #888;
-            margin-left: 6px;
-        }
-        
-        .terminal-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-        }
-        
+        .terminal-title { color: #888; margin-left: 6px; }
+        .terminal-body { flex: 1; display: flex; flex-direction: column; overflow: auto; }
         .terminal-output {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            font-size: 13px;
-            line-height: 1.4;
-            white-space: pre-wrap;
+            flex: 1; padding: 10px; overflow-y: auto; font-size: 13px; line-height: 1.4; white-space: pre-wrap;
         }
-        
         .terminal-input {
-            background: #111;
-            padding: 10px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
+            background: #111; padding: 10px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+            display: flex; align-items: center; font-family: 'Courier New', monospace; font-size: 13px;
         }
-        
-        .prompt {
-            color: #00ff00;
-            font-weight: bold;
-            user-select: none;
-            margin-right: 5px;
-        }
-        
+        .prompt { color: #00ff00; font-weight: bold; user-select: none; margin-right: 5px; }
         .input-field {
-            background: transparent;
-            border: none;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            outline: none;
-            flex: 1;
-            caret-color: #00ff00;
+            background: transparent; border: none; color: #00ff00; font-family: 'Courier New', monospace;
+            font-size: 13px; outline: none; flex: 1; caret-color: #00ff00;
         }
-        
-        .message {
-            margin-bottom: 4px;
-            word-wrap: break-word;
-        }
-        
-        .user-message {
-            color: #00ff00;
-        }
-        
-        .bot-message {
-            color: white;
-        }
-        
-        .ai-message {
-            color: #00bfff;
-            border-left: 3px solid #00bfff;
-            padding-left: 8px;
-            margin: 8px 0;
-        }
-        
-        .error {
-            color: #ff5555;
-        }
-        
-        .success {
-            color: #55ff55;
-        }
-        
-        .warning {
-            color: #ffff55;
-        }
-        
+        .message { margin-bottom: 4px; word-wrap: break-word; }
+        .user-message { color: #00ff00; }
+        .bot-message { color: white; }
+        .ai-message { color: #00bfff; border-left: 3px solid #00bfff; padding-left: 8px; margin: 8px 0; }
+        .error { color: #ff5555; }
+        .success { color: #55ff55; }
+        .warning { color: #ffff55; }
         .crypto-data {
-            margin: 8px 0;
-            border: 1px solid #333;
-            background: #0a0a0a;
-            border-radius: 4px;
+            margin: 8px 0; border: 1px solid #333; background: #0a0a0a; border-radius: 4px;
         }
-        
-        .crypto-header {
-            background: #1a1a1a;
-            color: #00ff00;
-            padding: 6px 10px;
-            font-weight: bold;
-            border-bottom: 1px solid #333;
-        }
-        
-        .crypto-body {
-            padding: 8px 10px;
-        }
-        
-        .crypto-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 2px 0;
-        }
-        
-        .positive {
-            color: #55ff55;
-        }
-        
-        .negative {
-            color: #ff5555;
-        }
-        
-        .typing-indicator {
-            color: #888;
-            display: inline-block;
-        }
-        
-        .typing-dots::after {
-            content: '...';
-            animation: typing 1.5s infinite;
-        }
-        
-        @keyframes typing {
-            0% { content: '.'; }
-            33% { content: '..'; }
-            66% { content: '...'; }
-            100% { content: '.'; }
-        }
-        
-        .live-indicator {
-            color: #ff4444;
-            animation: pulse 2s infinite;
-        }
-        
-        .compact-list {
-            margin: 2px 0;
-        }
-        
-        .compact-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 1px 0;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        .crypto-header { background: #1a1a1a; color: #00ff00; padding: 6px 10px; font-weight: bold; border-bottom: 1px solid #333; }
+        .crypto-body { padding: 8px 10px; }
+        .crypto-row { display: flex; justify-content: space-between; margin: 2px 0; }
+        .positive { color: #55ff55; }
+        .negative { color: #ff5555; }
+        .typing-indicator { color: #888; display: inline-block; }
+        .typing-dots::after { content: '...'; animation: typing 1.5s infinite; }
+        @keyframes typing { 0%{content:'.';} 33%{content:'..';} 66%{content:'...';} 100%{content:'.';} }
+        .live-indicator { color: #ff4444; animation: pulse 2s infinite; }
+        .compact-list { margin: 2px 0; }
+        .compact-row { display: flex; justify-content: space-between; padding: 1px 0; }
+        @keyframes pulse { 0%{opacity:1;} 50%{opacity:.5;} 100%{opacity:1;} }
     </style>
 </head>
 <body>
@@ -236,13 +87,13 @@
         </div>
         <div class="terminal-title">nodeprompt@ai-terminal:~$</div>
     </div>
-    
+
     <div class="terminal-body">
         <div class="terminal-output" id="output">
             <div class="message bot-message">
                 <div id="boot-screen">
                     <pre id="boot-text"></pre>
-                    
+
                     |¯\ |¯|/¯__¯\|¯¯__¯\|¯¯____|    |¯¯__¯\|¯¯__¯\ /¯__¯\|¯¯\/¯¯|¯¯__¯\__¯¯¯__|
                     |  \| | |  | | |  | | |__       | |__) | |__) | |  | | \  / | |__) | | |   
                     | . ` | |  | | |  | |  __|      |  ___/|  _  /| |  | | |\/| |  ___/  | |   
@@ -254,7 +105,7 @@
             <div class="message bot-message">Type 'help' to see available commands</div>
         </div>
     </div>
-        
+
     <div class="terminal-input">
         <span class="prompt">nodeprompt@ai-terminal:~$</span>
         <input type="text" class="input-field" id="commandInput" autocomplete="off" spellcheck="false" placeholder="Type a command...">
@@ -266,10 +117,68 @@
         const API_KEY = 'CG-A4oLB7rcDxWinXjsBFD1Frmz';
         const output = document.getElementById('output');
         const commandInput = document.getElementById('commandInput');
-        
+
         let isProcessing = false;
         let liveIntervals = {};
-        
+
+        // --- Typing helpers ---
+        const TYPE_SPEED_MS = 20;
+
+        function scrollToBottom() {
+            window.scrollTo(0, document.body.scrollHeight);
+            const out = document.getElementById('output');
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function typeTextInto(el, text, speed = TYPE_SPEED_MS, done = () => {}) {
+            el.textContent = '';
+            let i = 0;
+            (function step() {
+                if (i < text.length) {
+                    el.textContent += text.charAt(i++);
+                    scrollToBottom();
+                    setTimeout(step, speed);
+                } else {
+                    done();
+                }
+            })();
+        }
+
+        function addMessage(text, type = 'bot', typed = true) {
+            const div = document.createElement('div');
+            div.className = `message ${type}-message`;
+            output.appendChild(div);
+            scrollToBottom();
+
+            // Only type for bot-like messages. Errors/success/warnings appear instantly for clarity.
+            const shouldType = typed && !['user','error','success','warning'].includes(type);
+            if (shouldType) {
+                typeTextInto(div, text);
+            } else {
+                div.textContent = text;
+            }
+        }
+
+        function addAIMessageTyped(text) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message bot-message';
+            const ai = document.createElement('div');
+            ai.className = 'ai-message';
+            wrapper.appendChild(ai);
+            output.appendChild(wrapper);
+            scrollToBottom();
+            typeTextInto(ai, `🤖 AI: ${text}`);
+        }
+
+        function addHTML(html) {
+            const div = document.createElement('div');
+            div.className = 'message bot-message';
+            div.innerHTML = html; // used for cards/tables; no typing
+            output.appendChild(div);
+            scrollToBottom();
+        }
+        // ----------------------
+
         // Simple AI responses
         const aiResponses = {
             'bitcoin': 'Bitcoin is the first and most well-known cryptocurrency, often called digital gold. It has strong institutional adoption but high volatility.',
@@ -278,21 +187,17 @@
             'blockchain': 'Blockchain is a distributed ledger technology that records transactions across multiple computers, ensuring transparency and immutability.',
             'default': 'I can help you with cryptocurrency questions, market analysis, and price data. Try asking about specific coins or blockchain concepts!'
         };
-        
+
         // Focus management
-        function ensureFocus() {
-            if (!isProcessing) {
-                commandInput.focus();
-            }
-        }
-        
+        function ensureFocus() { if (!isProcessing) commandInput.focus(); }
+
         function printCompactList(cryptos) {
             const listDiv = document.createElement('div');
             listDiv.className = 'compact-list';
-            
+
             let html = '<div style="color: #888; margin-bottom: 4px;">RANK | NAME        | PRICE      | 24H    | MCAP</div>';
             html += '<div style="color: #333; margin-bottom: 4px;">-----|-------------|------------|--------|--------</div>';
-            
+
             cryptos.forEach((crypto, index) => {
                 const changeClass = crypto.price_change_percentage_24h >= 0 ? 'positive' : 'negative';
                 const changeSymbol = crypto.price_change_percentage_24h >= 0 ? '+' : '';
@@ -301,25 +206,25 @@
                 const price = ('$' + crypto.current_price.toLocaleString()).padEnd(10, ' ');
                 const change = (changeSymbol + crypto.price_change_percentage_24h.toFixed(1) + '%').padEnd(6, ' ');
                 const mcap = ('$' + (crypto.market_cap / 1e9).toFixed(1) + 'B').padEnd(8, ' ');
-                
+
                 html += `<div class="compact-row">${rank}   | ${name} | ${price} | <span class="${changeClass}">${change}</span> | ${mcap}</div>`;
             });
-            
+
             listDiv.innerHTML = html;
             output.appendChild(listDiv);
             scrollToBottom();
         }
-        
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             commandInput.focus();
             console.log('Terminal initialized');
         });
-        
+
         // Keep focus
         document.addEventListener('click', ensureFocus);
         commandInput.addEventListener('blur', () => setTimeout(ensureFocus, 10));
-        
+
         // Handle enter key
         commandInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
@@ -332,7 +237,7 @@
                 }
             }
         });
-        
+
         document.addEventListener("DOMContentLoaded", () => {
             const bootLines = [
                 "Initializing NodePrompt OS...",
@@ -353,33 +258,15 @@
                 if (i < bootLines.length) {
                     bootText.textContent += bootLines[i] + "\n";
                     i++;
-
                     const delay = (i === bootLines.length - 1) ? 200 : 700;
                     setTimeout(showNextLine, delay);
                 } else {
                     document.getElementById("boot-screen").style.display = "none";
                 }
             }
-
             showNextLine();
         });
-        
-        function addMessage(text, type = 'bot') {
-            const div = document.createElement('div');
-            div.className = `message ${type}-message`;
-            div.textContent = text;
-            output.appendChild(div);
-            window.scrollTo(0, document.body.scrollHeight);
-        }
-        
-        function addHTML(html) {
-            const div = document.createElement('div');
-            div.className = 'message bot-message';
-            div.innerHTML = html;
-            output.appendChild(div);
-            window.scrollTo(0, document.body.scrollHeight);
-        }
-        
+
         function showTyping() {
             isProcessing = true;
             const div = document.createElement('div');
@@ -387,23 +274,20 @@
             div.className = 'typing-indicator';
             div.innerHTML = 'Processing<span class="typing-dots"></span>';
             output.appendChild(div);
-            window.scrollTo(0, document.body.scrollHeight);
+            scrollToBottom();
         }
-        
+
         function hideTyping() {
             const typing = document.getElementById('typing');
             if (typing) typing.remove();
             isProcessing = false;
             ensureFocus();
         }
-        
-        // Contract address detection and info
+
+        // Address utils
         function isContractAddress(input) {
-            // Ethereum address (0x followed by 40 hex chars)
             const ethPattern = /^0x[a-fA-F0-9]{40}$/;
-            // Solana address (32-44 base58 chars)
             const solPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-            
             return {
                 isEth: ethPattern.test(input),
                 isSol: solPattern.test(input),
@@ -413,26 +297,14 @@
 
         async function fetchContractInfo(address) {
             const addressInfo = isContractAddress(address);
-            
-            if (!addressInfo.isContract) {
-                return { error: "Invalid contract address format" };
-            }
-
+            if (!addressInfo.isContract) return { error: "Invalid contract address format" };
             try {
-                // Try DEXScreener first (works for both ETH and SOL)
                 const dexData = await fetchDexScreenerData(address);
-                if (!dexData.error) {
-                    return { ...dexData, contractAddress: address };
-                }
-
-                // If DEXScreener fails and it's an ETH address, try CoinGecko
+                if (!dexData.error) return { ...dexData, contractAddress: address };
                 if (addressInfo.isEth) {
                     const cgData = await fetchCoinGeckoByContract(address);
-                    if (!cgData.error) {
-                        return { ...cgData, contractAddress: address };
-                    }
+                    if (!cgData.error) return { ...cgData, contractAddress: address };
                 }
-
                 return { error: `No data found for contract address: ${address.slice(0, 8)}...${address.slice(-6)}` };
             } catch (error) {
                 return { error: `Failed to fetch contract data: ${error.message}` };
@@ -441,19 +313,10 @@
 
         async function fetchCoinGeckoByContract(address) {
             try {
-                // First, get coin info by contract address
                 const searchUrl = `https://api.coingecko.com/api/v3/coins/ethereum/contract/${address}?x_cg_demo_api_key=${API_KEY}`;
-                
-                console.log('Fetching CoinGecko by contract:', searchUrl);
-                
                 const response = await fetch(searchUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`Contract not found on CoinGecko: ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`Contract not found on CoinGecko: ${response.status}`);
                 const data = await response.json();
-                
                 return {
                     name: data.name,
                     symbol: data.symbol,
@@ -468,29 +331,17 @@
                 return { error: error.message };
             }
         }
-        
+
         async function fetchCryptoData(coinId) {
             try {
-                // Build URL with API key
                 let url = `https://api.coingecko.com/api/v3/coins/${coinId}?x_cg_demo_api_key=${API_KEY}`;
-                
-                console.log('Fetching CoinGecko:', url);
-                
                 const response = await fetch(url);
-                
                 if (!response.ok) {
-                    console.error('API Response:', response.status, response.statusText);
-                    if (response.status === 429) {
-                        throw new Error('Rate limit exceeded. Please wait a moment.');
-                    } else if (response.status === 404) {
-                        throw new Error(`Coin "${coinId}" not found. Check spelling.`);
-                    } else {
-                        throw new Error(`API error: ${response.status}`);
-                    }
+                    if (response.status === 429) throw new Error('Rate limit exceeded. Please wait a moment.');
+                    if (response.status === 404) throw new Error(`Coin "${coinId}" not found. Check spelling.`);
+                    throw new Error(`API error: ${response.status}`);
                 }
-                
                 const data = await response.json();
-                
                 return {
                     name: data.name,
                     symbol: data.symbol,
@@ -508,37 +359,15 @@
 
         async function fetchDexScreenerData(query) {
             try {
-                // Search by token address or symbol
                 let url;
-                if (query.length > 20) {
-                    // Looks like a token address
-                    url = `https://api.dexscreener.com/latest/dex/tokens/${query}`;
-                } else {
-                    // Search by symbol
-                    url = `https://api.dexscreener.com/latest/dex/search/?q=${query}`;
-                }
-                
-                console.log('Fetching DEXScreener:', url);
-                
+                if (query.length > 20) url = `https://api.dexscreener.com/latest/dex/tokens/${query}`;
+                else url = `https://api.dexscreener.com/latest/dex/search/?q=${query}`;
                 const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`DEXScreener API error: ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`DEXScreener API error: ${response.status}`);
                 const data = await response.json();
-                
-                if (!data.pairs || data.pairs.length === 0) {
-                    return { error: `No trading pairs found for "${query}" on DEXScreener` };
-                }
-                
-                // Get the first Solana pair or the most liquid pair
+                if (!data.pairs || data.pairs.length === 0) return { error: `No trading pairs found for "${query}" on DEXScreener` };
                 let bestPair = data.pairs.find(p => p.chainId === 'solana') || data.pairs[0];
-                
-                if (!bestPair) {
-                    return { error: `No suitable trading pair found for "${query}"` };
-                }
-                
+                if (!bestPair) return { error: `No suitable trading pair found for "${query}"` };
                 return {
                     name: bestPair.baseToken.name,
                     symbol: bestPair.baseToken.symbol,
@@ -557,219 +386,165 @@
                 return { error: error.message };
             }
         }
-        
+
         function getCoinId(symbol) {
             const coins = {
-                'btc': 'bitcoin', 'bitcoin': 'bitcoin',
-                'eth': 'ethereum', 'ethereum': 'ethereum',
-                'ada': 'cardano', 'cardano': 'cardano',
-                'sol': 'solana', 'solana': 'solana',
-                'xrp': 'ripple', 'ripple': 'ripple',
-                'doge': 'dogecoin', 'dogecoin': 'dogecoin',
-                'bnb': 'binancecoin', 'binancecoin': 'binancecoin',
-                'matic': 'polygon', 'polygon': 'polygon',
-                'dot': 'polkadot', 'polkadot': 'polkadot',
-                'avax': 'avalanche-2', 'avalanche': 'avalanche-2'
+                'btc':'bitcoin','bitcoin':'bitcoin',
+                'eth':'ethereum','ethereum':'ethereum',
+                'ada':'cardano','cardano':'cardano',
+                'sol':'solana','solana':'solana',
+                'xrp':'ripple','ripple':'ripple',
+                'doge':'dogecoin','dogecoin':'dogecoin',
+                'bnb':'binancecoin','binancecoin':'binancecoin',
+                'matic':'polygon','polygon':'polygon',
+                'dot':'polkadot','polkadot':'polkadot',
+                'avax':'avalanche-2','avalanche':'avalanche-2'
             };
             return coins[symbol.toLowerCase()] || symbol.toLowerCase();
         }
-        
+
         function displayCrypto(data, isLive = false) {
-            if (data.error) {
-                addMessage(`Error: ${data.error}`, 'error');
-                return;
-            }
-            
+            if (data.error) { addMessage(`Error: ${data.error}`, 'error', false); return; }
+
             const changeClass = data.change24h >= 0 ? 'positive' : 'negative';
             const changeSign = data.change24h >= 0 ? '+' : '';
             const liveText = isLive ? ' <span class="live-indicator">● LIVE</span>' : '';
             const sourceText = data.source === 'dexscreener' ? ' [DEX]' : ' [CG]';
-            
+
             let extraInfo = '';
             if (data.source === 'dexscreener') {
                 extraInfo = `
-                    <div class="crypto-row">
-                        <span>Liquidity:</span>
-                        <span>${data.liquidity ? (data.liquidity / 1e6).toFixed(2) + 'M' : 'N/A'}</span>
-                    </div>
-                    <div class="crypto-row">
-                        <span>DEX:</span>
-                        <span>${data.dexId?.toUpperCase() || 'N/A'}</span>
-                    </div>
-                    <div class="crypto-row">
-                        <span>Chain:</span>
-                        <span>${data.chainId?.toUpperCase() || 'N/A'}</span>
-                    </div>
+                    <div class="crypto-row"><span>Liquidity:</span><span>${data.liquidity ? (data.liquidity / 1e6).toFixed(2) + 'M' : 'N/A'}</span></div>
+                    <div class="crypto-row"><span>DEX:</span><span>${data.dexId?.toUpperCase() || 'N/A'}</span></div>
+                    <div class="crypto-row"><span>Chain:</span><span>${data.chainId?.toUpperCase() || 'N/A'}</span></div>
                 `;
             }
-            
+
             const html = `
                 <div class="crypto-data" ${isLive ? `id="live-${data.symbol}"` : ''}>
                     <div class="crypto-header">${data.name} (${data.symbol.toUpperCase()})${sourceText}${liveText}</div>
                     <div class="crypto-body">
-                        <div class="crypto-row">
-                            <span>Price:</span>
-                            <span>${data.price < 0.01 ? data.price.toExponential(4) : data.price.toLocaleString()}</span>
-                        </div>
-                        <div class="crypto-row">
-                            <span>24h Change:</span>
-                            <span class="${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</span>
-                        </div>
-                        <div class="crypto-row">
-                            <span>Market Cap:</span>
-                            <span>${data.marketCap ? (data.marketCap / 1e9).toFixed(2) + 'B' : 'N/A'}</span>
-                        </div>
-                        <div class="crypto-row">
-                            <span>Volume (24h):</span>
-                            <span>${data.volume ? (data.volume / 1e6).toFixed(2) + 'M' : 'N/A'}</span>
-                        </div>
+                        <div class="crypto-row"><span>Price:</span><span>${data.price < 0.01 ? data.price.toExponential(4) : data.price.toLocaleString()}</span></div>
+                        <div class="crypto-row"><span>24h Change:</span><span class="${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</span></div>
+                        <div class="crypto-row"><span>Market Cap:</span><span>${data.marketCap ? (data.marketCap / 1e9).toFixed(2) + 'B' : 'N/A'}</span></div>
+                        <div class="crypto-row"><span>Volume (24h):</span><span>${data.volume ? (data.volume / 1e6).toFixed(2) + 'M' : 'N/A'}</span></div>
                         ${extraInfo}
                         ${isLive ? `<div class="crypto-row"><span>Updated:</span><span>${new Date().toLocaleTimeString()}</span></div>` : ''}
                     </div>
                 </div>
             `;
-            
+
             if (isLive) {
                 const existing = document.getElementById(`live-${data.symbol}`);
-                if (existing) {
-                    existing.outerHTML = html;
-                } else {
-                    addHTML(html);
-                }
+                if (existing) existing.outerHTML = html; else addHTML(html);
             } else {
                 addHTML(html);
             }
         }
-        
+
         function startLiveUpdates(coinId, symbol) {
-            if (liveIntervals[symbol]) {
-                clearInterval(liveIntervals[symbol]);
-            }
-            
+            if (liveIntervals[symbol]) clearInterval(liveIntervals[symbol]);
             liveIntervals[symbol] = setInterval(async () => {
                 const data = await fetchCryptoData(coinId);
-                if (data && !data.error) {
-                    displayCrypto(data, true);
-                }
-            }, 30000); // 30 second updates
-            
-            addMessage(`🔴 Live updates started for ${symbol.toUpperCase()} (30s intervals)`, 'success');
+                if (data && !data.error) displayCrypto(data, true);
+            }, 30000);
+            addMessage(`🔴 Live updates started for ${symbol.toUpperCase()} (30s intervals)`, 'success', false);
         }
-        
+
         function stopLiveUpdates(symbol = null) {
             if (symbol) {
                 if (liveIntervals[symbol]) {
                     clearInterval(liveIntervals[symbol]);
                     delete liveIntervals[symbol];
-                    addMessage(`🔴 Stopped live updates for ${symbol.toUpperCase()}`, 'warning');
+                    addMessage(`🔴 Stopped live updates for ${symbol.toUpperCase()}`, 'warning', false);
                 } else {
-                    addMessage(`No live updates found for ${symbol.toUpperCase()}`, 'error');
+                    addMessage(`No live updates found for ${symbol.toUpperCase()}`, 'error', false);
                 }
             } else {
                 Object.values(liveIntervals).forEach(clearInterval);
                 liveIntervals = {};
-                addMessage('🔴 All live updates stopped', 'warning');
+                addMessage('🔴 All live updates stopped', 'warning', false);
             }
         }
-        
+
         function getAIResponse(question) {
             const q = question.toLowerCase();
             for (const [key, response] of Object.entries(aiResponses)) {
-                if (q.includes(key)) {
-                    return response;
-                }
+                if (q.includes(key)) return response;
             }
             return aiResponses.default;
         }
-        
+
         function analyzePrice(data) {
             const change = data.change24h;
             let sentiment, confidence, action;
-            
-            if (change > 5) {
-                sentiment = 'BULLISH';
-                confidence = Math.min(85, 60 + change);
-                action = 'BUY/HOLD';
-            } else if (change < -5) {
-                sentiment = 'BEARISH';
-                confidence = Math.min(85, 60 + Math.abs(change));
-                action = 'SELL/AVOID';
-            } else {
-                sentiment = 'NEUTRAL';
-                confidence = 50;
-                action = 'HOLD';
-            }
-            
+            if (change > 5) { sentiment = 'BULLISH'; confidence = Math.min(85, 60 + change); action = 'BUY/HOLD'; }
+            else if (change < -5) { sentiment = 'BEARISH'; confidence = Math.min(85, 60 + Math.abs(change)); action = 'SELL/AVOID'; }
+            else { sentiment = 'NEUTRAL'; confidence = 50; action = 'HOLD'; }
             return { sentiment, confidence: confidence.toFixed(0), action };
         }
-        
+
         async function executeCommand(command) {
-            addMessage(`nodeprompt@ai-terminal:~$ ${command}`, 'user');
-            
+            addMessage(`nodeprompt@ai-terminal:~$ ${command}`, 'user', false);
+
             const parts = command.toLowerCase().trim().split(' ');
             const cmd = parts[0];
-            
+
             switch (cmd) {
-                case 'help':
-                    addMessage('Available commands:');
-                    addMessage('  help              - Show this help');
-                    addMessage('  price <coin>      - Get crypto price');
-                    addMessage('  dex <token>       - Search DEXScreener for Solana tokens');
-                    addMessage('  search <token>    - Find token data');
-                    addMessage('  contract <addr>   - Get token info by contract address');
-                    addMessage('  live <coin>       - Start live updates');
-                    addMessage('  stop [coin]       - Stop live updates');
-                    addMessage('  ai <question>     - Ask AI');
-                    addMessage('  ai analyze <coin> - AI analysis');
-                    addMessage('  clear             - Clear screen');
-                    addMessage('  exit              - Exit terminal');
+                case 'help': {
+                    // Type as a single block for clean effect
+                    const helpText =
+`Available commands:
+  help              - Show this help
+  price <coin>      - Get crypto price
+  dex <token>       - Search DEXScreener for Solana tokens
+  search <token>    - Find token data
+  contract <addr>   - Get token info by contract address
+  live <coin>       - Start live updates
+  stop [coin]       - Stop live updates
+  ai <question>     - Ask AI
+  ai analyze <coin> - AI analysis
+  clear             - Clear screen
+  exit              - Exit terminal`;
+                    addMessage(helpText, 'bot', true);
                     break;
-                    
-                case 'test':
+                }
+
+                case 'test': {
                     showTyping();
-                    addMessage('Testing CoinGecko API...', 'warning');
+                    addMessage('Testing CoinGecko API...', 'warning', false);
                     const testDataCG = await fetchCryptoData('bitcoin');
-                    
-                    if (testDataCG.error) {
-                        addMessage(`✗ CoinGecko: ${testDataCG.error}`, 'error');
-                    } else {
-                        addMessage(`✓ CoinGecko: Retrieved ${testDataCG.name}`, 'success');
-                    }
-                    
-                    addMessage('Testing DEXScreener API...', 'warning');
+                    if (testDataCG.error) addMessage(`✗ CoinGecko: ${testDataCG.error}`, 'error', false);
+                    else addMessage(`✓ CoinGecko: Retrieved ${testDataCG.name}`, 'success', false);
+
+                    addMessage('Testing DEXScreener API...', 'warning', false);
                     const testDataDEX = await fetchDexScreenerData('SOL');
-                    
-                    if (testDataDEX.error) {
-                        addMessage(`✗ DEXScreener: ${testDataDEX.error}`, 'error');
-                    } else {
-                        addMessage(`✓ DEXScreener: Found ${testDataDEX.name}`, 'success');
-                    }
-                    
+                    if (testDataDEX.error) addMessage(`✗ DEXScreener: ${testDataDEX.error}`, 'error', false);
+                    else addMessage(`✓ DEXScreener: Found ${testDataDEX.name}`, 'success', false);
                     hideTyping();
                     break;
-                    
+                }
+
                 case 'clear':
                     output.innerHTML = '';
                     break;
-                    
+
                 case 'exit':
                     Object.values(liveIntervals).forEach(clearInterval);
                     liveIntervals = {};
-                    addMessage('Terminal closed.', 'error');
+                    addMessage('Terminal closed.', 'error', false);
                     commandInput.disabled = true;
                     break;
-                    
+
                 case 'price':
                     if (parts[1]) {
                         showTyping();
                         const coinId = getCoinId(parts[1]);
                         const data = await fetchCryptoData(coinId);
                         hideTyping();
-                        
                         displayCrypto(data);
                     } else {
-                        addMessage('Usage: price <coin>', 'error');
-                        addMessage('Example: price btc, price ethereum');
+                        addMessage('Usage: price <coin>\nExample: price btc, price ethereum', 'bot', true);
                     }
                     break;
 
@@ -779,11 +554,9 @@
                         const query = parts.slice(1).join(' ');
                         const data = await fetchDexScreenerData(query);
                         hideTyping();
-                        
                         displayCrypto(data);
                     } else {
-                        addMessage('Usage: dex <token>', 'error');
-                        addMessage('Example: dex BONK, dex WIF, dex <token_address>');
+                        addMessage('Usage: dex <token>\nExample: dex BONK, dex WIF, dex <token_address>', 'bot', true);
                     }
                     break;
 
@@ -791,45 +564,34 @@
                     if (parts[1]) {
                         showTyping();
                         const query = parts[1];
-                        
-                        // Check if it's a contract address first
                         const addressInfo = isContractAddress(query);
                         if (addressInfo.isContract) {
                             const network = addressInfo.isEth ? 'Ethereum' : 'Solana';
-                            addMessage(`Detected ${network} contract address, fetching info...`, 'warning');
-                            
+                            addMessage(`Detected ${network} contract address, fetching info...`, 'warning', false);
                             const contractData = await fetchContractInfo(query);
                             hideTyping();
                             displayCrypto(contractData);
                             break;
                         }
-                        
-                        // Try CoinGecko first
                         const coinId = getCoinId(query);
                         let cgData = await fetchCryptoData(coinId);
-                        
-                        // If CoinGecko fails, try DEXScreener
                         let dexData = null;
-                        if (cgData.error) {
-                            dexData = await fetchDexScreenerData(query);
-                        }
-                        
+                        if (cgData.error) dexData = await fetchDexScreenerData(query);
                         hideTyping();
-                        
+
                         if (!cgData.error) {
-                            addMessage(`Found on CoinGecko:`, 'success');
+                            addMessage(`Found on CoinGecko:`, 'success', false);
                             displayCrypto(cgData);
                         } else if (dexData && !dexData.error) {
-                            addMessage(`Found on DEXScreener:`, 'success');
+                            addMessage(`Found on DEXScreener:`, 'success', false);
                             displayCrypto(dexData);
                         } else {
-                            addMessage(`Token "${query}" not found on either CoinGecko or DEXScreener`, 'error');
-                            if (cgData.error) addMessage(`CoinGecko: ${cgData.error}`, 'error');
-                            if (dexData && dexData.error) addMessage(`DEXScreener: ${dexData.error}`, 'error');
+                            addMessage(`Token "${query}" not found on either CoinGecko or DEXScreener`, 'error', false);
+                            if (cgData.error) addMessage(`CoinGecko: ${cgData.error}`, 'error', false);
+                            if (dexData && dexData.error) addMessage(`DEXScreener: ${dexData.error}`, 'error', false);
                         }
                     } else {
-                        addMessage('Usage: search <token>', 'error');
-                        addMessage('Example: search PEPE, search WIF');
+                        addMessage('Usage: search <token>\nExample: search PEPE, search WIF', 'bot', true);
                     }
                     break;
 
@@ -838,39 +600,33 @@
                         showTyping();
                         const address = parts[1];
                         const addressInfo = isContractAddress(address);
-                        
                         if (!addressInfo.isContract) {
                             hideTyping();
-                            addMessage('Invalid contract address format', 'error');
-                            addMessage('Ethereum: 0x followed by 40 hex characters', 'warning');
-                            addMessage('Solana: 32-44 base58 characters', 'warning');
+                            addMessage('Invalid contract address format', 'error', false);
+                            addMessage('Ethereum: 0x followed by 40 hex characters', 'warning', false);
+                            addMessage('Solana: 32-44 base58 characters', 'warning', false);
                             break;
                         }
-                        
                         const network = addressInfo.isEth ? 'Ethereum' : 'Solana';
-                        addMessage(`Fetching ${network} contract info...`, 'warning');
-                        
+                        addMessage(`Fetching ${network} contract info...`, 'warning', false);
                         const data = await fetchContractInfo(address);
                         hideTyping();
-                        
-                        if (!data.error) {
-                            addMessage(`✓ Contract found on ${network}:`, 'success');
-                        }
+                        if (!data.error) addMessage(`✓ Contract found on ${network}:`, 'success', false);
                         displayCrypto(data);
                     } else {
-                        addMessage('Usage: contract <address>', 'error');
-                        addMessage('Example: contract 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984');
-                        addMessage('Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+                        addMessage(
+`Usage: contract <address>
+Example: contract 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984
+Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
                     }
                     break;
-                    
+
                 case 'live':
                     if (parts[1]) {
                         showTyping();
                         const coinId = getCoinId(parts[1]);
                         const data = await fetchCryptoData(coinId);
                         hideTyping();
-                        
                         if (!data.error) {
                             displayCrypto(data, true);
                             startLiveUpdates(coinId, data.symbol.toUpperCase());
@@ -878,30 +634,24 @@
                             displayCrypto(data);
                         }
                     } else {
-                        addMessage('Usage: live <coin>', 'error');
-                        addMessage('Example: live btc, live ethereum');
+                        addMessage('Usage: live <coin>\nExample: live btc, live ethereum', 'bot', true);
                     }
                     break;
-                    
+
                 case 'stop':
-                    if (parts[1]) {
-                        stopLiveUpdates(parts[1].toUpperCase());
-                    } else {
-                        stopLiveUpdates();
-                    }
+                    if (parts[1]) stopLiveUpdates(parts[1].toUpperCase());
+                    else stopLiveUpdates();
                     break;
-                    
+
                 case 'ai':
                     if (parts[1] === 'analyze' && parts[2]) {
                         showTyping();
                         const coinId = getCoinId(parts[2]);
                         const data = await fetchCryptoData(coinId);
                         hideTyping();
-                        
                         if (!data.error) {
                             displayCrypto(data);
                             const analysis = analyzePrice(data);
-                            
                             addHTML(`
                                 <div class="ai-message">
                                     🤖 AI Analysis for ${data.name}:<br>
@@ -917,24 +667,20 @@
                     } else if (parts.length > 1) {
                         const question = parts.slice(1).join(' ');
                         showTyping();
-                        
                         setTimeout(() => {
                             hideTyping();
                             const response = getAIResponse(question);
-                            addHTML(`<div class="ai-message">🤖 AI: ${response}</div>`);
-                        }, 1000);
+                            addAIMessageTyped(response);
+                        }, 600);
                     } else {
-                        addMessage('Usage: ai <question> or ai analyze <coin>', 'error');
+                        addMessage('Usage: ai <question> or ai analyze <coin>', 'bot', true);
                     }
                     break;
-                    
+
                 default:
-                    addMessage(`Command not found: ${cmd}`, 'error');
-                    addMessage("Type 'help' for available commands");
+                    addMessage(`Command not found: ${cmd}\nType 'help' for available commands`, 'bot', true);
             }
         }
     </script>
 </body>
 </html>
-
-
