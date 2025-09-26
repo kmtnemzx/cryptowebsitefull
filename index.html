@@ -93,12 +93,6 @@
             <div class="message bot-message">
                 <div id="boot-screen">
                     <pre id="boot-text"></pre>
-
-                    |¯\ |¯|/¯__¯\|¯¯__¯\|¯¯____|    |¯¯__¯\|¯¯__¯\ /¯__¯\|¯¯\/¯¯|¯¯__¯\__¯¯¯__|
-                    |  \| | |  | | |  | | |__       | |__) | |__) | |  | | \  / | |__) | | |   
-                    | . ` | |  | | |  | |  __|      |  ___/|  _  /| |  | | |\/| |  ___/  | |   
-                    | |\  | |__| | |__| | |____     | |    | | \ \| |__| | |  | | |      | |   
-                    |_| \_|\____/|_____/|______|    |_|    |_|  \_\\____/|_|  |_|_|      |_| v2.0.0
                 </div>
             </div>
             <div class="message bot-message">AI Assistant + Live Crypto Data</div>
@@ -123,6 +117,32 @@
 
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
+        const ALWAYS_TYPEWRITER = true; // Enforce typing for all non-user messages
+
+        // Ensure ASCII-only output by mapping common unicode and dropping others
+        function toASCII(input) {
+            if (input == null) return '';
+            const map = {
+                '…':'...', '’':'\'', '‘':'\'', '“':'"', '”':'"',
+                '–':'-', '—':'-', '•':'*', '·':'.', '●':'*',
+                '✓':'[OK]', '✔':'[OK]', '✅':'[OK]', '✗':'[X]', '✘':'[X]', '❌':'[X]',
+                '→':'->', '←':'<-', '↑':'^', '↓':'v', '▶':'>', '◀':'<',
+                '×':'x', '÷':'/', '°':' deg ', '¼':'1/4', '½':'1/2', '¾':'3/4',
+                '£':'GBP', '€':'EUR', '¥':'JPY', '₿':'BTC',
+                '™':'(TM)', '©':'(c)', '®':'(R)', '∞':'inf', '±':'+/-', '§':'S',
+                '█':'#', '▓':'#', '▒':'#', '░':'#',
+                '🤖':'AI', '🔴':'[LIVE]'
+            };
+            let out = '';
+            for (const ch of String(input)) {
+                if (map[ch]) { out += map[ch]; continue; }
+                const code = ch.charCodeAt(0);
+                if (code === 9 || code === 10 || code === 13) { out += ch; continue; }
+                if (code >= 32 && code <= 126) { out += ch; continue; }
+                // otherwise drop
+            }
+            return out;
+        }
 
         function scrollToBottom() {
             window.scrollTo(0, document.body.scrollHeight);
@@ -131,11 +151,12 @@
         }
 
         function typeTextInto(el, text, speed = TYPE_SPEED_MS, done = () => {}) {
+            const s = toASCII(text);
             el.textContent = '';
             let i = 0;
             (function step() {
-                if (i < text.length) {
-                    el.textContent += text.charAt(i++);
+                if (i < s.length) {
+                    el.textContent += s.charAt(i++);
                     scrollToBottom();
                     setTimeout(step, speed);
                 } else {
@@ -150,12 +171,12 @@
             output.appendChild(div);
             scrollToBottom();
 
-            // Only type for bot-like messages. Errors/success/warnings appear instantly for clarity.
-            const shouldType = typed && !['user','error','success','warning'].includes(type);
+            // Type for all non-user messages (unless explicitly disabled)
+            const shouldType = (ALWAYS_TYPEWRITER ? type !== 'user' : (typed && type !== 'user'));
             if (shouldType) {
                 typeTextInto(div, text);
             } else {
-                div.textContent = text;
+                div.textContent = toASCII(text);
             }
         }
 
@@ -167,13 +188,13 @@
             wrapper.appendChild(ai);
             output.appendChild(wrapper);
             scrollToBottom();
-            typeTextInto(ai, `🤖 AI: ${text}`);
+            typeTextInto(ai, `AI: ${text}`);
         }
 
         function addHTML(html) {
             const div = document.createElement('div');
             div.className = 'message bot-message';
-            div.innerHTML = html; // used for cards/tables; no typing
+            div.innerHTML = toASCII(html); // used for cards/tables; no typing and ASCII-only
             output.appendChild(div);
             scrollToBottom();
         }
@@ -248,7 +269,7 @@
                 "Loading user preferences...",
                 "Boot sequence complete.",
                 "",
-                "[████████████████████████████████████████] 100%"
+                "[########################################] 100%"
             ];
 
             const bootText = document.getElementById("boot-text");
@@ -408,7 +429,7 @@
 
             const changeClass = data.change24h >= 0 ? 'positive' : 'negative';
             const changeSign = data.change24h >= 0 ? '+' : '';
-            const liveText = isLive ? ' <span class="live-indicator">● LIVE</span>' : '';
+            const liveText = isLive ? ' <span class="live-indicator">[LIVE]</span>' : '';
             const sourceText = data.source === 'dexscreener' ? ' [DEX]' : ' [CG]';
 
             let extraInfo = '';
@@ -421,13 +442,13 @@
             }
 
             const html = `
-                <div class="crypto-data" ${isLive ? `id="live-${data.symbol}"` : ''}>
-                    <div class="crypto-header">${data.name} (${data.symbol.toUpperCase()})${sourceText}${liveText}</div>
+                <div class="crypto-data" ${isLive ? `id="live-${toASCII(data.symbol)}"` : ''}>
+                    <div class="crypto-header">${toASCII(data.name)} (${toASCII(data.symbol.toUpperCase())})${sourceText}${liveText}</div>
                     <div class="crypto-body">
-                        <div class="crypto-row"><span>Price:</span><span>${data.price < 0.01 ? data.price.toExponential(4) : data.price.toLocaleString()}</span></div>
+                        <div class="crypto-row"><span>Price:</span><span>${data.price < 0.01 ? toASCII(data.price.toExponential(4)) : toASCII(data.price.toLocaleString())}</span></div>
                         <div class="crypto-row"><span>24h Change:</span><span class="${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</span></div>
-                        <div class="crypto-row"><span>Market Cap:</span><span>${data.marketCap ? (data.marketCap / 1e9).toFixed(2) + 'B' : 'N/A'}</span></div>
-                        <div class="crypto-row"><span>Volume (24h):</span><span>${data.volume ? (data.volume / 1e6).toFixed(2) + 'M' : 'N/A'}</span></div>
+                        <div class="crypto-row"><span>Market Cap:</span><span>${data.marketCap ? toASCII((data.marketCap / 1e9).toFixed(2) + 'B') : 'N/A'}</span></div>
+                        <div class="crypto-row"><span>Volume (24h):</span><span>${data.volume ? toASCII((data.volume / 1e6).toFixed(2) + 'M') : 'N/A'}</span></div>
                         ${extraInfo}
                         ${isLive ? `<div class="crypto-row"><span>Updated:</span><span>${new Date().toLocaleTimeString()}</span></div>` : ''}
                     </div>
@@ -435,7 +456,7 @@
             `;
 
             if (isLive) {
-                const existing = document.getElementById(`live-${data.symbol}`);
+                const existing = document.getElementById(`live-${toASCII(data.symbol)}`);
                 if (existing) existing.outerHTML = html; else addHTML(html);
             } else {
                 addHTML(html);
@@ -448,7 +469,7 @@
                 const data = await fetchCryptoData(coinId);
                 if (data && !data.error) displayCrypto(data, true);
             }, 30000);
-            addMessage(`🔴 Live updates started for ${symbol.toUpperCase()} (30s intervals)`, 'success', false);
+            addMessage(`[LIVE] Live updates started for ${symbol.toUpperCase()} (30s intervals)`, 'success', true);
         }
 
         function stopLiveUpdates(symbol = null) {
@@ -456,14 +477,14 @@
                 if (liveIntervals[symbol]) {
                     clearInterval(liveIntervals[symbol]);
                     delete liveIntervals[symbol];
-                    addMessage(`🔴 Stopped live updates for ${symbol.toUpperCase()}`, 'warning', false);
+                    addMessage(`[LIVE] Stopped live updates for ${symbol.toUpperCase()}`, 'warning', true);
                 } else {
-                    addMessage(`No live updates found for ${symbol.toUpperCase()}`, 'error', false);
+                    addMessage(`No live updates found for ${symbol.toUpperCase()}`, 'error', true);
                 }
             } else {
                 Object.values(liveIntervals).forEach(clearInterval);
                 liveIntervals = {};
-                addMessage('🔴 All live updates stopped', 'warning', false);
+                addMessage('[LIVE] All live updates stopped', 'warning', true);
             }
         }
 
@@ -514,13 +535,13 @@
                     showTyping();
                     addMessage('Testing CoinGecko API...', 'warning', false);
                     const testDataCG = await fetchCryptoData('bitcoin');
-                    if (testDataCG.error) addMessage(`✗ CoinGecko: ${testDataCG.error}`, 'error', false);
-                    else addMessage(`✓ CoinGecko: Retrieved ${testDataCG.name}`, 'success', false);
+                    if (testDataCG.error) addMessage(`[X] CoinGecko: ${testDataCG.error}`, 'error', true);
+                    else addMessage(`[OK] CoinGecko: Retrieved ${toASCII(testDataCG.name)}`, 'success', true);
 
                     addMessage('Testing DEXScreener API...', 'warning', false);
                     const testDataDEX = await fetchDexScreenerData('SOL');
-                    if (testDataDEX.error) addMessage(`✗ DEXScreener: ${testDataDEX.error}`, 'error', false);
-                    else addMessage(`✓ DEXScreener: Found ${testDataDEX.name}`, 'success', false);
+                    if (testDataDEX.error) addMessage(`[X] DEXScreener: ${testDataDEX.error}`, 'error', true);
+                    else addMessage(`[OK] DEXScreener: Found ${toASCII(testDataDEX.name)}`, 'success', true);
                     hideTyping();
                     break;
                 }
@@ -611,7 +632,7 @@
                         addMessage(`Fetching ${network} contract info...`, 'warning', false);
                         const data = await fetchContractInfo(address);
                         hideTyping();
-                        if (!data.error) addMessage(`✓ Contract found on ${network}:`, 'success', false);
+                        if (!data.error) addMessage(`[OK] Contract found on ${network}:`, 'success', true);
                         displayCrypto(data);
                     } else {
                         addMessage(
@@ -654,7 +675,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
                             const analysis = analyzePrice(data);
                             addHTML(`
                                 <div class="ai-message">
-                                    🤖 AI Analysis for ${data.name}:<br>
+                                    AI Analysis for ${toASCII(data.name)}:<br>
                                     Sentiment: <span class="${analysis.sentiment === 'BULLISH' ? 'positive' : analysis.sentiment === 'BEARISH' ? 'negative' : 'warning'}">${analysis.sentiment}</span><br>
                                     Confidence: ${analysis.confidence}%<br>
                                     Recommendation: ${analysis.action}<br>
