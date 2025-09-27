@@ -29,6 +29,45 @@
             top: 0;
             z-index: 10;
         }
+        .terminal-header {
+            background:#222; color:#0f0; padding:8px;
+            display:flex; align-items:center; justify-content:space-between;
+            position:sticky; top:0; z-index:10; font-family:'Courier New', monospace;
+        }
+        .terminal-btn {
+            background:#111; color:#0f0; border:1px solid #0f0;
+            padding:6px 10px; font-family:'Courier New', monospace; font-size:13px;
+            cursor:pointer; border-radius:3px;
+        }
+        .terminal-btn:active { transform:translateY(1px); }
+
+          /* Backdrop */
+        .np-overlay {
+            position:fixed; inset:0; display:none; place-items:center;
+            background:rgba(0,0,0,0.6); z-index:9999;
+        }
+        .np-overlay.show { display:grid; }
+
+          /* Centered popup ~75% of page */
+        .np-modal {
+            width:min(1000px, 75vw);
+            height:75vh;
+            background:#000; color:#0f0; border:1px solid #0f0;
+            box-shadow:0 0 0 1px #033 inset, 0 10px 30px rgba(0,0,0,0.8);
+            display:flex; flex-direction:column; font-family:'Courier New', monospace;
+        }
+        .np-bar {
+            background:#222; color:#0f0; padding:8px 10px;
+            display:flex; align-items:center; justify-content:space-between;
+            border-bottom:1px solid #333; user-select:none;
+        }
+        .np-close {
+            background:#111; color:#0f0; border:1px solid #0f0;
+            padding:4px 8px; cursor:pointer; border-radius:3px; font-size:13px;
+        }
+        .np-body {
+            padding:12px; overflow:auto; white-space:pre-wrap; line-height:1.4; font-size:13px;
+        }
         .terminal-buttons { display: flex; gap: 4px; }
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -80,12 +119,26 @@
 </head>
 <body>
     <div class="terminal-header">
-        <div class="terminal-buttons">
-            <button class="btn close"></button>
-            <button class="btn minimize"></button>
-            <button class="btn maximize"></button>
+      <div class="terminal-buttons">
+        <button class="btn close"></button>
+        <button class="btn minimize"></button>
+        <button class="btn maximize"></button>
+      </div>
+      <div class="terminal-title">nodeprompt@ai-terminal:~$</div>
+      <button class="terminal-btn" id="openOverlay">open-popup</button>
+    </div>
+
+    <!-- 75% viewport popup -->
+    <div class="np-overlay" id="npOverlay" role="dialog" aria-modal="true" aria-labelledby="npTitle">
+      <div class="np-modal">
+        <div class="np-bar">
+          <div id="npTitle">nodeprompt@popup:~$</div>
+          <button class="np-close" id="closeOverlay">close</button>
         </div>
-        <div class="terminal-title">nodeprompt@ai-terminal:~$</div>
+        <div class="np-body" id="npBody">
+          Popup content here.
+        </div>
+      </div>
     </div>
 
     <div class="terminal-body">
@@ -118,6 +171,31 @@
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
         const ALWAYS_TYPEWRITER = true; // Enforce typing for all non-user messages
+
+        const openBtn = document.getElementById('openOverlay');
+        const closeBtn = document.getElementById('closeOverlay');
+        const overlay = document.getElementById('npOverlay');
+
+        openBtn.addEventListener('click', () => {
+          overlay.classList.add('show');
+          document.documentElement.style.overflow = 'hidden';
+        });
+
+        const closeModal = () => {
+          overlay.classList.remove('show');
+          document.documentElement.style.overflow = '';
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) closeModal(); // click outside to close
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeModal();
+        });
+
 
         // Ensure ASCII-only output by mapping common unicode and dropping others
         function toASCII(input) {
@@ -705,3 +783,4 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
