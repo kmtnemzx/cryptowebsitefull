@@ -29,6 +29,33 @@
             top: 0;
             z-index: 10;
         }
+        .terminal-tabs {
+            display: flex;
+            gap: 2px;
+            margin-left: 20px;
+        }
+        .terminal-tab {
+            background: #333;
+            color: #0f0;
+            border: 1px solid #555;
+            padding: 4px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px 3px 0 0;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .terminal-tab:hover {
+            background: #444;
+            color: #00ff88;
+            border-color: #00ff88;
+        }
+        .terminal-tab.active {
+            background: #111;
+            color: #00ff88;
+            border-color: #00ff88;
+        }
         .terminal-buttons { display: flex; gap: 4px; }
         #boot-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -80,12 +107,17 @@
 </head>
 <body>
     <div class="terminal-header">
-        <div class="terminal-buttons">
-            <button class="btn close"></button>
-            <button class="btn minimize"></button>
-            <button class="btn maximize"></button>
+        <div style="display: flex; align-items: center;">
+            <div class="terminal-buttons">
+                <button class="btn close"></button>
+                <button class="btn minimize"></button>
+                <button class="btn maximize"></button>
+            </div>
+            <div class="terminal-title">nodeprompt@ai-terminal:~$</div>
+            <div class="terminal-tabs">
+                <div class="terminal-tab" onclick="loadQuickToken()">QUICK: 9BB6NF...</div>
+            </div>
         </div>
-        <div class="terminal-title">nodeprompt@ai-terminal:~$</div>
     </div>
 
     <div class="terminal-body">
@@ -123,7 +155,7 @@
         function toASCII(input) {
             if (input == null) return '';
             const map = {
-                '…':'...', '’':'\'', '‘':'\'', '“':'"', '”':'"',
+                '…':'...', ''':'\'', ''':'\'', '"':'"', '"':'"',
                 '–':'-', '—':'-', '•':'*', '·':'.', '●':'*',
                 '✓':'[OK]', '✔':'[OK]', '✅':'[OK]', '✗':'[X]', '✘':'[X]', '❌':'[X]',
                 '→':'->', '←':'<-', '↑':'^', '↓':'v', '▶':'>', '◀':'<',
@@ -233,6 +265,50 @@
 
             listDiv.innerHTML = html;
             output.appendChild(listDiv);
+            scrollToBottom();
+        }
+
+        // Quick token tab function
+        async function loadQuickToken() {
+            const contractAddress = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump';
+            
+            // Add visual feedback
+            const tab = document.querySelector('.terminal-tab');
+            const originalText = tab.textContent;
+            tab.classList.add('active');
+            tab.textContent = 'Loading...';
+            
+            // Add command to output as if user typed it
+            addMessage(`nodeprompt@ai-terminal:~$ contract ${contractAddress}`, 'user', false);
+            
+            showTyping();
+            
+            const addressInfo = isContractAddress(contractAddress);
+            if (!addressInfo.isContract) {
+                hideTyping();
+                addMessage('Invalid contract address format', 'error', false);
+                tab.classList.remove('active');
+                tab.textContent = originalText;
+                return;
+            }
+            
+            const network = addressInfo.isEth ? 'Ethereum' : 'Solana';
+            addMessage(`Fetching ${network} contract info...`, 'warning', false);
+            
+            const data = await fetchContractInfo(contractAddress);
+            hideTyping();
+            
+            if (!data.error) {
+                addMessage(`[OK] Contract found on ${network}:`, 'success', true);
+            }
+            
+            displayCrypto(data);
+            
+            // Reset tab
+            tab.classList.remove('active');
+            tab.textContent = originalText;
+            
+            // Scroll to bottom
             scrollToBottom();
         }
 
