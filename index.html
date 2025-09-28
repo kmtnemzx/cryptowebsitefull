@@ -298,7 +298,7 @@
 		const refreshBtn = document.getElementById('refreshOverlay');
 		const body = document.getElementById('npBody');
 
-		refreshBtn?.addEventListener('click', () => {
+		refreshBtn?.addEventListener('click', async () => {
   		if (refreshBtn.disabled) return;
   		refreshBtn.disabled = true;
 
@@ -311,20 +311,27 @@
     		refreshTimer = null;
   		}
 
+  		// ensure loader exists in global scope
+  		if (typeof window.loadTokenIntoPopup !== 'function') {
+    		body.textContent = 'Error: loader not found';
+    		refreshBtn.disabled = false;
+    		return;
+  		}
+
   		// after 5s, replace spinner with fresh data
   		refreshTimer = setTimeout(async () => {
     		try {
       		body.textContent = '';           // ensure spinner is gone
-      		await loadTokenIntoPopup();      // your existing renderer writes #npBody
+      		await window.loadTokenIntoPopup(); // defined elsewhere
     		} catch (e) {
       		body.textContent = `Error: ${e.message || 'refresh failed'}`;
     		} finally {
-      		refreshBtn.disabled = false;
+     		refreshBtn.disabled = false;
       		refreshTimer = null;
     		}
   		}, 5000);
 		});
-		;
+
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
         const ALWAYS_TYPEWRITER = true; // Enforce typing for all non-user messages
@@ -940,6 +947,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
