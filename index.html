@@ -128,16 +128,18 @@
       <button class="terminal-btn" id="openOverlay">token-data</button>
     </div>
 
-    <!-- 75% viewport popup -->
-    <div class="np-overlay" id="npOverlay" role="dialog" aria-modal="true" aria-labelledby="npTitle">
-	    <div class="np-modal">
-		    <div class="np-bar">
-			    <div id="npTitle">Token data</div>
-			    <button class="np-close" id="closeOverlay">close</button>
-		    </div>
-		    <div class="np-body" id="npBody">Waiting…</div>
-	    </div>
-    </div>
+	<!-- 75% viewport popup -->
+	<div class="np-overlay" id="npOverlay" role="dialog" aria-modal="true" aria-labelledby="npTitle">
+		<div class="np-modal">
+			<div class="np-bar">
+				<div id="npTitle">Token data</div>
+				<button class="np-close" id="refreshOverlay">refresh</button>
+				<button class="np-close" id="closeOverlay">close</button>
+			</div>
+			<div class="np-body" id="npBody">Waiting…</div>
+		</div>
+	</div>
+
 
     <div class="terminal-body">
         <div class="terminal-output" id="output">
@@ -893,6 +895,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
