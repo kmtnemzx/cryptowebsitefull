@@ -293,7 +293,19 @@
 
         let isProcessing = false;
         let liveIntervals = {};
+			// 5-second "Refreshing…" popup with spinner, then reload data
+		let refreshTimer;
+		document.getElementById('refreshOverlay')?.addEventListener('click', () => {
+			const body = document.getElementById('npBody');
+			if (refreshTimer) clearTimeout(refreshTimer);
 
+			body.innerHTML = `<div class="loading"><div class="spinner"></div><span>Refreshing…</span></div>`;
+
+			refreshTimer = setTimeout(() => {
+				loadTokenIntoPopup(); // your existing fetch+render
+				refreshTimer = null;
+			}, 5000);
+		});
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
         const ALWAYS_TYPEWRITER = true; // Enforce typing for all non-user messages
@@ -909,6 +921,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
