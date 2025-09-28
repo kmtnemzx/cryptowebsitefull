@@ -40,6 +40,20 @@
             cursor:pointer; border-radius:3px;
         }
         .terminal-btn:active { transform:translateY(1px); }
+		.loading{
+      		font-size:14px;
+     		 display:flex;
+      		align-items:center;
+      		gap:8px;
+    		}
+    	.spinner{
+     		 border:2px solid #0f0;
+     		 border-top:2px solid transparent;
+     		 border-radius:50%;
+     		 width:18px;height:18px;
+      		animation:spin 1s linear infinite;
+   		 }
+    	@keyframes spin{100%{transform:rotate(360deg);}}
 
           /* Backdrop */
         .np-overlay {
@@ -895,6 +909,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
