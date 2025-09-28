@@ -293,18 +293,31 @@
 
         let isProcessing = false;
         let liveIntervals = {};
-			// 5-second "Refreshing…" popup with spinner, then reload data
-		let refreshTimer;
-		document.getElementById('refreshOverlay')?.addEventListener('click', () => {
-			const body = document.getElementById('npBody');
-			if (refreshTimer) clearTimeout(refreshTimer);
+		// Fixed: single timer, 5s spinner, then fetch. Button disabled during wait.
+		let refreshTimer = null;
+		const refreshBtn = document.getElementById('refreshOverlay');
+		const body = document.getElementById('npBody');
 
-			body.innerHTML = `<div class="loading"><div class="spinner"></div><span>Refreshing…</span></div>`;
+		refreshBtn?.addEventListener('click', () => {
+				// clear any previous pending refresh
+				if (refreshTimer) {
+						clearTimeout(refreshTimer);
+						refreshTimer = null;
+				}
 
-			refreshTimer = setTimeout(() => {
-				loadTokenIntoPopup(); // your existing fetch+render
-				refreshTimer = null;
-			}, 5000);
+				// show spinner immediately
+				body.innerHTML = `<div class="loading"><div class="spinner"></div><span>Refreshing…</span></div>`;
+				refreshBtn.disabled = true;
+
+				// after 5s, run the loader; the loader overwrites the spinner
+				refreshTimer = setTimeout(async () => {
+						try {
+								await loadTokenIntoPopup(); // this sets #npBody content (success or error)
+						} finally {
+								refreshBtn.disabled = false;
+								refreshTimer = null;
+						}
+				}, 5000);
 		});
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
@@ -921,6 +934,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
