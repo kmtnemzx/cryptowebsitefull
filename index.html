@@ -130,15 +130,13 @@
 
     <!-- 75% viewport popup -->
     <div class="np-overlay" id="npOverlay" role="dialog" aria-modal="true" aria-labelledby="npTitle">
-      <div class="np-modal">
-        <div class="np-bar">
-          <div id="npTitle">Token data</div>
-          <button class="np-close" id="closeOverlay">close</button>
-        </div>
-        <div class="np-body" id="npBody">
-          Popup content here.
-        </div>
-      </div>
+	    <div class="np-modal">
+		    <div class="np-bar">
+			    <div id="npTitle">Token data</div>
+			    <button class="np-close" id="closeOverlay">close</button>
+		    </div>
+		    <div class="np-body" id="npBody">Waiting…</div>
+	    </div>
     </div>
 
     <div class="terminal-body">
@@ -160,6 +158,75 @@
     </div>
 
     <script>
+		// ===== Pure JavaScript (place after your existing scripts) =====
+		(() => {
+			// Config
+			const TG_WORKER  = 'https://your-worker.workers.dev/token'; // <- set your Worker URL
+			const TARGET_MINT = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump';
+
+			// Elements
+			const openBtn  = document.getElementById('openOverlay');
+			const closeBtn = document.getElementById('closeOverlay');
+			const overlay  = document.getElementById('npOverlay');
+			const bodyEl   = document.getElementById('npBody');
+
+			// Utils
+			const fmt = (n, f = 2) =>
+				Number.isFinite(Number(n)) ? Number(n).toLocaleString(undefined, { maximumFractionDigits: f }) : 'N/A';
+
+			async function loadTokenIntoPopup() {
+				bodyEl.textContent = 'Fetching token data...';
+				try {
+					const r = await fetch(`${TG_WORKER}?mint=${encodeURIComponent(TARGET_MINT)}`, { cache: 'no-store' });
+					if (!r.ok) throw new Error(`HTTP ${r.status}`);
+					const d = await r.json();
+
+					const dex = d.dex || {};
+					const lines = [];
+					lines.push(`MINT: ${d.mint}`);
+					lines.push(`SUPPLY: ${fmt(d.supply, 0)}  DECIMALS: ${d.decimals ?? 'N/A'}`);
+					lines.push('');
+					lines.push('[DEX]');
+					lines.push(`  DEX: ${dex.dexId?.toUpperCase() || 'N/A'}  PAIR: ${dex.pairAddress || 'N/A'}`);
+					lines.push(`  TOKEN: ${dex.baseToken?.name || 'N/A'} (${dex.baseToken?.symbol || 'N/A'}) / ${dex.quoteToken?.symbol || ''}`);
+					lines.push(`  PRICE: $${fmt(dex.priceUsd, 8)}  MCAP: $${fmt(dex.mcap, 0)}`);
+					lines.push(`  LIQUIDITY: $${fmt(dex.liquidityUsd, 0)}  VOL(24h): $${fmt(dex.volume24h, 0)}`);
+					if (dex.priceChange) {
+						const pc = dex.priceChange;
+						lines.push(`  CHANGE: 5m ${pc.m5 ?? 'N/A'}%  1h ${pc.h1 ?? 'N/A'}%  6h ${pc.h6 ?? 'N/A'}%  24h ${pc.h24 ?? 'N/A'}%`);
+					}
+					lines.push('');
+					lines.push('[HOLDERS]');
+					const pct10 = d.holders?.pctTop10;
+					lines.push(`  Top10 concentration: ${Number.isFinite(pct10) ? pct10.toFixed(2) + '%' : 'N/A'}`);
+					lines.push('  Top20:');
+					(d.holders?.top20 || []).forEach((h, i) => {
+						lines.push(`    ${String(i + 1).padStart(2, ' ')}. ${h.address}  amt=${fmt(h.amount, 0)}  ${h.pctOfSupply != null ? h.pctOfSupply.toFixed(4) + '%' : 'N/A'}`);
+					});
+
+					bodyEl.textContent = lines.join('\n');
+				} catch (e) {
+					bodyEl.textContent = `Error: ${e.message}`;
+				}
+			}
+
+			function openModal() {
+				overlay.classList.add('show');
+				document.documentElement.style.overflow = 'hidden';
+				loadTokenIntoPopup();
+			}
+
+			function closeModal() {
+				overlay.classList.remove('show');
+				document.documentElement.style.overflow = '';
+			}
+
+			openBtn?.addEventListener('click', openModal);
+			closeBtn?.addEventListener('click', closeModal);
+			overlay?.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+			document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+		})();
+
         // CoinGecko API key
         const API_KEY = 'CG-A4oLB7rcDxWinXjsBFD1Frmz';
         const output = document.getElementById('output');
@@ -783,6 +850,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
