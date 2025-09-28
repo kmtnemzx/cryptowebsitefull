@@ -158,74 +158,117 @@
     </div>
 
     <script>
-		// ===== Pure JavaScript (place after your existing scripts) =====
-		(() => {
-			// Config
-			const TG_WORKER  = 'https://your-worker.workers.dev/token'; // <- set your Worker URL
-			const TARGET_MINT = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump';
+	// ===== Pure JavaScript (no worker) =====
+	(() => {
+		// Config
+		const TARGET_MINT = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump';
+		const SOLANA_RPC = 'https://api.mainnet-beta.solana.com'; // public RPC
 
-			// Elements
-			const openBtn  = document.getElementById('openOverlay');
-			const closeBtn = document.getElementById('closeOverlay');
-			const overlay  = document.getElementById('npOverlay');
-			const bodyEl   = document.getElementById('npBody');
+		// Elements
+		const openBtn = document.getElementById('openOverlay');
+		const closeBtn = document.getElementById('closeOverlay');
+		const overlay = document.getElementById('npOverlay');
+		const bodyEl = document.getElementById('npBody');
 
-			// Utils
-			const fmt = (n, f = 2) =>
-				Number.isFinite(Number(n)) ? Number(n).toLocaleString(undefined, { maximumFractionDigits: f }) : 'N/A';
+		// Utils
+		const fmt = (n, f = 2) =>
+			Number.isFinite(Number(n)) ? Number(n).toLocaleString(undefined, { maximumFractionDigits: f }) : 'N/A';
 
-			async function loadTokenIntoPopup() {
-				bodyEl.textContent = 'Fetching token data...';
-				try {
-					const r = await fetch(`${TG_WORKER}?mint=${encodeURIComponent(TARGET_MINT)}`, { cache: 'no-store' });
-					if (!r.ok) throw new Error(`HTTP ${r.status}`);
-					const d = await r.json();
+		async function fetchDexData(mint) {
+			const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`, { cache: 'no-store' });
+			if (!r.ok) return null;
+			const j = await r.json();
+			const pairs = (j.pairs || []).filter(p => p.chainId === 'solana');
+			pairs.sort((a,b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0));
+			return pairs[0] || null;
+		}
 
-					const dex = d.dex || {};
-					const lines = [];
-					lines.push(`MINT: ${d.mint}`);
-					lines.push(`SUPPLY: ${fmt(d.supply, 0)}  DECIMALS: ${d.decimals ?? 'N/A'}`);
-					lines.push('');
-					lines.push('[DEX]');
+		async function rpc(method, params) {
+			const r = await fetch(SOLANA_RPC, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params })
+			});
+			if (!r.ok) throw new Error(`RPC ${method} HTTP ${r.status}`);
+			return r.json();
+		}
+
+		async function fetchHoldersAndSupply(mint) {
+			const [supplyRes, largestRes] = await Promise.all([
+				rpc('getTokenSupply', [mint]),
+				rpc('getTokenLargestAccounts', [mint, { commitment: 'processed' }])
+			]);
+
+			let supply = null, decimals = null, top = [];
+			try {
+				supply = Number(supplyRes.result.value.uiAmountString);
+				decimals = supplyRes.result.value.decimals;
+			} catch {}
+			try {
+				const arr = largestRes.result.value || [];
+				top = arr.map(x => ({
+					address: x.address,
+					amount: Number(x.uiAmount),
+					pctOfSupply: supply ? (Number(x.uiAmount) / supply) * 100 : null
+				}));
+			} catch {}
+			const pctTop10 = top.slice(0,10).reduce((a,x)=>a+(x.pctOfSupply||0),0);
+			return { supply, decimals, top20: top, pctTop10: Number.isFinite(pctTop10) ? pctTop10 : null };
+		}
+
+		async function loadTokenIntoPopup() {
+			bodyEl.textContent = 'Fetching token data...';
+			try {
+				const [dex, holders] = await Promise.all([
+					fetchDexData(TARGET_MINT),
+					fetchHoldersAndSupply(TARGET_MINT)
+				]);
+
+				const lines = [];
+				lines.push(`MINT: ${TARGET_MINT}`);
+				lines.push(`SUPPLY: ${fmt(holders.supply, 0)}  DECIMALS: ${holders.decimals ?? 'N/A'}`);
+				lines.push('');
+				lines.push('[DEX]');
+				if (dex) {
 					lines.push(`  DEX: ${dex.dexId?.toUpperCase() || 'N/A'}  PAIR: ${dex.pairAddress || 'N/A'}`);
 					lines.push(`  TOKEN: ${dex.baseToken?.name || 'N/A'} (${dex.baseToken?.symbol || 'N/A'}) / ${dex.quoteToken?.symbol || ''}`);
-					lines.push(`  PRICE: $${fmt(dex.priceUsd, 8)}  MCAP: $${fmt(dex.mcap, 0)}`);
-					lines.push(`  LIQUIDITY: $${fmt(dex.liquidityUsd, 0)}  VOL(24h): $${fmt(dex.volume24h, 0)}`);
-					if (dex.priceChange) {
-						const pc = dex.priceChange;
-						lines.push(`  CHANGE: 5m ${pc.m5 ?? 'N/A'}%  1h ${pc.h1 ?? 'N/A'}%  6h ${pc.h6 ?? 'N/A'}%  24h ${pc.h24 ?? 'N/A'}%`);
-					}
-					lines.push('');
-					lines.push('[HOLDERS]');
-					const pct10 = d.holders?.pctTop10;
-					lines.push(`  Top10 concentration: ${Number.isFinite(pct10) ? pct10.toFixed(2) + '%' : 'N/A'}`);
-					lines.push('  Top20:');
-					(d.holders?.top20 || []).forEach((h, i) => {
-						lines.push(`    ${String(i + 1).padStart(2, ' ')}. ${h.address}  amt=${fmt(h.amount, 0)}  ${h.pctOfSupply != null ? h.pctOfSupply.toFixed(4) + '%' : 'N/A'}`);
-					});
-
-					bodyEl.textContent = lines.join('\n');
-				} catch (e) {
-					bodyEl.textContent = `Error: ${e.message}`;
+					lines.push(`  PRICE: $${fmt(Number(dex.priceUsd || 0), 8)}  MCAP: $${fmt(Number(dex.marketCap || 0), 0)}`);
+					lines.push(`  LIQUIDITY: $${fmt(Number(dex.liquidity?.usd || 0), 0)}  VOL(24h): $${fmt(Number(dex.volume?.h24 || 0), 0)}`);
+					const pc = dex.priceChange || {};
+					lines.push(`  CHANGE: 5m ${pc.m5 ?? 'N/A'}%  1h ${pc.h1 ?? 'N/A'}%  6h ${pc.h6 ?? 'N/A'}%  24h ${pc.h24 ?? 'N/A'}%`);
+				} else {
+					lines.push('  No DEX data found.');
 				}
-			}
+				lines.push('');
+				lines.push('[HOLDERS]');
+				lines.push(`  Top10 concentration: ${holders.pctTop10 != null ? holders.pctTop10.toFixed(2) + '%' : 'N/A'}`);
+				lines.push('  Top20:');
+				(holders.top20 || []).forEach((h, i) => {
+					lines.push(`    ${String(i + 1).padStart(2, ' ')}. ${h.address}  amt=${fmt(h.amount, 0)}  ${h.pctOfSupply != null ? h.pctOfSupply.toFixed(4) + '%' : 'N/A'}`);
+				});
 
-			function openModal() {
-				overlay.classList.add('show');
-				document.documentElement.style.overflow = 'hidden';
-				loadTokenIntoPopup();
+				bodyEl.textContent = lines.join('\n');
+			} catch (e) {
+				bodyEl.textContent = `Error: ${e.message}`;
 			}
+		}
 
-			function closeModal() {
-				overlay.classList.remove('show');
-				document.documentElement.style.overflow = '';
-			}
+		function openModal() {
+			overlay.classList.add('show');
+			document.documentElement.style.overflow = 'hidden';
+			loadTokenIntoPopup();
+		}
 
-			openBtn?.addEventListener('click', openModal);
-			closeBtn?.addEventListener('click', closeModal);
-			overlay?.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-			document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-		})();
+		function closeModal() {
+			overlay.classList.remove('show');
+			document.documentElement.style.overflow = '';
+		}
+
+		openBtn?.addEventListener('click', openModal);
+		closeBtn?.addEventListener('click', closeModal);
+		overlay?.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+		document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+	})();
 
         // CoinGecko API key
         const API_KEY = 'CG-A4oLB7rcDxWinXjsBFD1Frmz';
@@ -850,6 +893,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
