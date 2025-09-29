@@ -132,6 +132,18 @@
     </style>
 </head>
 <body>
+<!-- Mobile blocker (add inside <body>, indent = 1 tab) -->
+<div id="mobileBlocker" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.96); color:#0f0; font-family:'Courier New', monospace;">
+	<div style="max-width:680px; margin:12vh auto; border:1px solid #0f0; background:#000; box-shadow:0 0 0 1px #033 inset;">
+		<div style="background:#222; border-bottom:1px solid #333; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+			<div>nodeprompt@access-control:~$</div>
+		</div>
+		<div style="padding:16px; line-height:1.5; font-size:14px; white-space:pre-wrap;">
+			We’ve noticed you’re on a mobile device.
+			For optimal compatibility please use a computer.
+		</div>
+	</div>
+	
     <div class="terminal-header">
       <div class="terminal-buttons">
         <button class="btn close"></button>
@@ -174,7 +186,7 @@
     </div>
 
     <script>
-	// ===== Pure JavaScript (no worker) =====
+	
 	(() => {
 		// Config
 		const TARGET_MINT = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump';
@@ -269,7 +281,7 @@
 			}
 		}
 		window.loadTokenIntoPopup = loadTokenIntoPopup;
-
+		
 		function openModal() {
 			overlay.classList.add('show');
 			document.documentElement.style.overflow = 'hidden';
@@ -331,6 +343,42 @@
       		refreshTimer = null;
     		}
   		}, 5000);
+		});
+		// Mobile detection (place after your other scripts)
+		(() => {
+		const blocker = document.getElementById('mobileBlocker');
+
+		function isMobileDevice() {
+				const ua = navigator.userAgent || '';
+				const mobileUA = /Android|iPhone|iPad|iPod|Mobile|IEMobile|BlackBerry|Opera Mini/i.test(ua);
+				const clientHint = navigator.userAgentData?.mobile === true;
+				const narrow = Math.min(window.innerWidth, window.innerHeight) < 900;
+				return clientHint || mobileUA || narrow;
+		}
+
+		function showBlocker() {
+				if (!blocker) return;
+				blocker.style.display = 'block';
+				document.documentElement.style.overflow = 'hidden';
+				document.querySelectorAll('input, button, a, textarea, select').forEach(el => {
+						if (el.id !== 'mobileBlocker') el.setAttribute('disabled', 'true');
+				});
+				blocker.addEventListener('click', e => e.stopPropagation(), { passive: true });
+				window.addEventListener('keydown', e => e.preventDefault());
+		}
+
+		function init() {
+				if (isMobileDevice()) showBlocker();
+		}
+
+		if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', init);
+		} else {
+				init();
+		}
+
+		window.addEventListener('resize', () => {
+				if (isMobileDevice()) showBlocker();
 		});
 
         // --- Typing helpers ---
@@ -573,7 +621,7 @@
             } catch (error) {
                 return { error: `Failed to fetch contract data: ${error.message}` };
             }
-        }
+		}
 
         async function fetchCoinGeckoByContract(address) {
             try {
@@ -948,6 +996,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
