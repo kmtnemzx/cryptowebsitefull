@@ -332,43 +332,6 @@
     		}
   		}, 5000);
 		});
-		// Mobile detection (place after your other scripts)
-		(() => {
-		const blocker = document.getElementById('mobileBlocker');
-
-		function isMobileDevice() {
-				const ua = navigator.userAgent || '';
-				const mobileUA = /Android|iPhone|iPad|iPod|Mobile|IEMobile|BlackBerry|Opera Mini/i.test(ua);
-				const clientHint = navigator.userAgentData?.mobile === true;
-				const narrow = Math.min(window.innerWidth, window.innerHeight) < 900;
-				return clientHint || mobileUA || narrow;
-		}
-
-		function showBlocker() {
-				if (!blocker) return;
-				blocker.style.display = 'block';
-				document.documentElement.style.overflow = 'hidden';
-				document.querySelectorAll('input, button, a, textarea, select').forEach(el => {
-						if (el.id !== 'mobileBlocker') el.setAttribute('disabled', 'true');
-				});
-				blocker.addEventListener('click', e => e.stopPropagation(), { passive: true });
-				window.addEventListener('keydown', e => e.preventDefault());
-		}
-
-		function init() {
-				if (isMobileDevice()) showBlocker();
-		}
-
-		if (document.readyState === 'loading') {
-				document.addEventListener('DOMContentLoaded', init);
-		} else {
-				init();
-		}
-
-		window.addEventListener('resize', () => {
-				if (isMobileDevice()) showBlocker();
-		});
-
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
         const ALWAYS_TYPEWRITER = true; // Enforce typing for all non-user messages
@@ -984,6 +947,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
