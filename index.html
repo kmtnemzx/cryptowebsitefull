@@ -131,7 +131,6 @@
         @keyframes pulse { 0%{opacity:1;} 50%{opacity:.5;} 100%{opacity:1;} }
 		/* Desktop: blocker hidden */
 		/* place in your main.css */
-		#mobileBlocker{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.96);color:#0f0;font-family:"Courier New",monospace}
 		.mb-wrap{max-width:680px;width:90%;margin:12vh auto;border:1px solid #0f0;background:#000;box-shadow:0 0 0 1px #033 inset}
 		.mb-bar{background:#222;border-bottom:1px solid #333;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
 		.mb-body{padding:16px;line-height:1.5;font-size:14px;white-space:pre-wrap}
@@ -146,7 +145,7 @@
     </style>
 </head>
 <body>
-	<div id="mobileBlocker" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.96); color:#0f0; font-family:'Courier New', monospace;">
+	<div id="mobileBlocker">
 		<div style="max-width:680px; margin:12vh auto; border:1px solid #0f0; background:#000; box-shadow:0 0 0 1px #033 inset;">
 			<div style="background:#222; border-bottom:1px solid #333; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
 				<div>nodeprompt@access-control:~$</div>
@@ -361,10 +360,6 @@
         // --- Typing helpers ---
         const TYPE_SPEED_MS = 20;
         const ALWAYS_TYPEWRITER = true; // Enforce typing for all non-user messages
-
-        const openBtn = document.getElementById('openOverlay');
-        const closeBtn = document.getElementById('closeOverlay');
-        const overlay = document.getElementById('npOverlay');
 
         openBtn.addEventListener('click', () => {
           overlay.classList.add('show');
@@ -973,6 +968,7 @@ Example: contract EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`, 'bot', true);
     </script>
 </body>
 </html>
+
 
 
 
